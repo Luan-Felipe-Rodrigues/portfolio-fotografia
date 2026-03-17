@@ -386,15 +386,13 @@ nav.scrolled {
 }
 
 .about-image {
-  aspect-ratio: 3/4;
   overflow: hidden;
-  background-color: var(--bg-secondary);
+  background-color: transparent;
 }
 
 .about-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
 }
 
 .about-text h2 {
@@ -606,6 +604,7 @@ footer p {
 
   .about-image {
     aspect-ratio: 16/9;
+    object-position: center 15%;
   }
 }
 
