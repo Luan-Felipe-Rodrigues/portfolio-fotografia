@@ -4,9 +4,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
-  initLazyLoad();
+  initImageLoading();
   initScrollReveal();
   initLightbox();
+  initSwipe();
 });
 
 /* --- Navigation --- */
@@ -23,15 +24,19 @@ function initNav() {
   // Mobile menu
   if (toggle && links) {
     toggle.addEventListener('click', () => {
-      links.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', links.classList.contains('open'));
+      const isOpen = links.classList.toggle('open');
+      toggle.classList.toggle('active', isOpen);
+      toggle.setAttribute('aria-expanded', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
     });
 
     // Close menu on link click
     links.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
         links.classList.remove('open');
+        toggle.classList.remove('active');
         toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
       });
     });
   }
@@ -46,30 +51,40 @@ function initNav() {
   });
 }
 
-/* --- Lazy Loading with fade-in --- */
-function initLazyLoad() {
-  const images = document.querySelectorAll('.gallery-item img[data-src]');
+/* --- Image Loading (lazy + direct src) --- */
+function initImageLoading() {
+  const allImages = document.querySelectorAll('.gallery-item img');
 
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.dataset.src;
-          img.onload = () => img.classList.add('loaded');
-          observer.unobserve(img);
-        }
-      });
-    }, { rootMargin: '200px' });
-
-    images.forEach(img => observer.observe(img));
-  } else {
-    // Fallback
-    images.forEach(img => {
-      img.src = img.dataset.src;
-      img.classList.add('loaded');
-    });
-  }
+  allImages.forEach(img => {
+    // Image has data-src: lazy load
+    if (img.dataset.src) {
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries, obs) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const target = entry.target;
+              target.src = target.dataset.src;
+              target.onload = () => target.classList.add('loaded');
+              obs.unobserve(target);
+            }
+          });
+        }, { rootMargin: '300px' });
+        observer.observe(img);
+      } else {
+        img.src = img.dataset.src;
+        img.classList.add('loaded');
+      }
+    }
+    // Image has src directly: fade in when loaded
+    else if (img.src || img.getAttribute('src')) {
+      if (img.complete && img.naturalHeight > 0) {
+        img.classList.add('loaded');
+      } else {
+        img.onload = () => img.classList.add('loaded');
+        img.onerror = () => img.classList.add('loaded'); // show broken state vs invisible
+      }
+    }
+  });
 }
 
 /* --- Scroll Reveal --- */
@@ -102,18 +117,33 @@ function initLightbox() {
   const prevBtn = lightbox.querySelector('.lightbox-prev');
   const nextBtn = lightbox.querySelector('.lightbox-next');
 
+  // Create counter element
+  let counter = lightbox.querySelector('.lightbox-counter');
+  if (!counter) {
+    counter = document.createElement('div');
+    counter.className = 'lightbox-counter';
+    lightbox.appendChild(counter);
+  }
+
   let currentImages = [];
   let currentIndex = 0;
 
   // Open lightbox on image click
   document.querySelectorAll('.gallery-item').forEach(item => {
     item.addEventListener('click', () => {
+      const img = item.querySelector('img');
+      if (!img) return;
+
       const grid = item.closest('.gallery-grid, .series-detail-grid');
       if (!grid) return;
 
       currentImages = Array.from(grid.querySelectorAll('.gallery-item img'))
-        .map(img => img.src || img.dataset.src);
-      currentIndex = currentImages.indexOf(item.querySelector('img').src || item.querySelector('img').dataset.src);
+        .map(i => i.src || i.dataset.src)
+        .filter(Boolean);
+
+      const clickedSrc = img.src || img.dataset.src;
+      currentIndex = currentImages.indexOf(clickedSrc);
+      if (currentIndex === -1) currentIndex = 0;
 
       showImage();
       lightbox.classList.add('active');
@@ -124,6 +154,7 @@ function initLightbox() {
   function showImage() {
     if (currentImages[currentIndex]) {
       lightboxImg.src = currentImages[currentIndex];
+      counter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
     }
   }
 
@@ -134,8 +165,8 @@ function initLightbox() {
 
   // Controls
   if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
-  if (prevBtn) prevBtn.addEventListener('click', () => navigate(-1));
-  if (nextBtn) nextBtn.addEventListener('click', () => navigate(1));
+  if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); navigate(-1); });
+  if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); navigate(1); });
 
   // Keyboard
   document.addEventListener('keydown', (e) => {
@@ -145,7 +176,7 @@ function initLightbox() {
     if (e.key === 'ArrowRight') navigate(1);
   });
 
-  // Click outside
+  // Click outside image
   lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) closeLightbox();
   });
@@ -154,4 +185,50 @@ function initLightbox() {
     lightbox.classList.remove('active');
     document.body.style.overflow = '';
   }
+
+  // Expose navigate for swipe
+  lightbox._navigate = navigate;
+  lightbox._close = closeLightbox;
+}
+
+/* --- Swipe support for lightbox on mobile --- */
+function initSwipe() {
+  const lightbox = document.getElementById('lightbox');
+  if (!lightbox) return;
+
+  let startX = 0;
+  let startY = 0;
+  let distX = 0;
+  let distY = 0;
+
+  lightbox.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+  }, { passive: true });
+
+  lightbox.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    distX = touch.clientX - startX;
+    distY = touch.clientY - startY;
+  }, { passive: true });
+
+  lightbox.addEventListener('touchend', () => {
+    const threshold = 60;
+    const isHorizontal = Math.abs(distX) > Math.abs(distY);
+
+    if (isHorizontal && Math.abs(distX) > threshold) {
+      if (distX > 0) {
+        lightbox._navigate && lightbox._navigate(-1); // swipe right = prev
+      } else {
+        lightbox._navigate && lightbox._navigate(1);  // swipe left = next
+      }
+    } else if (!isHorizontal && distY > threshold) {
+      // swipe down = close
+      lightbox._close && lightbox._close();
+    }
+
+    distX = 0;
+    distY = 0;
+  }, { passive: true });
 }
