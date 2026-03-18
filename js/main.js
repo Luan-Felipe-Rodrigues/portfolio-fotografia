@@ -58,7 +58,6 @@ function initMasonry() {
   if (!grids.length) return;
 
   const ROW_HEIGHT = 4; // matches grid-auto-rows: 4px
-  const GAP = 4;        // matches gap
 
   function resizeItem(item) {
     const img = item.querySelector('img');
@@ -67,8 +66,9 @@ function initMasonry() {
     const setSpan = () => {
       const colWidth = item.offsetWidth;
       if (!colWidth || !img.naturalWidth) return;
+      const gap = parseFloat(getComputedStyle(item.parentElement).columnGap) || 4;
       const imgHeight = (img.naturalHeight / img.naturalWidth) * colWidth;
-      const span = Math.ceil((imgHeight + GAP) / (ROW_HEIGHT + 0));
+      const span = Math.ceil((imgHeight + gap) / ROW_HEIGHT);
       item.style.gridRowEnd = 'span ' + span;
     };
 
