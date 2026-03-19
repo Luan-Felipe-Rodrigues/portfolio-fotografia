@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initSwipe();
 });
 
+
+
 /* --- Navigation --- */
 function initNav() {
   const nav = document.querySelector('nav');
