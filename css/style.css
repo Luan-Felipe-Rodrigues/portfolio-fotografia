@@ -235,6 +235,206 @@ nav.scrolled {
   line-height: 1.15;
 }
 
+/* --- Location Nav (Lugares page) --- */
+.location-nav {
+  padding: 0 2rem;
+  max-width: var(--max-width);
+  margin: 0 auto 1rem;
+}
+
+.location-nav-inner {
+  display: flex;
+  gap: 2rem;
+  padding: 0.5rem 0 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-bottom: 1px solid var(--bg-secondary);
+}
+
+.location-nav-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.location-nav-inner a {
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-lighter);
+  white-space: nowrap;
+  position: relative;
+  padding-bottom: 4px;
+  transition: color 0.3s var(--transition);
+  flex-shrink: 0;
+}
+
+.location-nav-inner a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--text);
+  transition: width 0.4s var(--transition);
+}
+
+.location-nav-inner a:hover {
+  color: var(--text);
+}
+
+.location-nav-inner a:hover::after {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .location-nav {
+    padding: 0 1.25rem;
+  }
+
+  .location-nav-inner {
+    gap: 1.5rem;
+    padding: 0.5rem 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .location-nav {
+    padding: 0 0.75rem;
+  }
+}
+
+/* --- Location Beacon (floating mini-nav, left side, outside photos) --- */
+.location-beacon {
+  position: fixed;
+  bottom: 2rem;
+  left: 1.5rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.5s var(--transition), transform 0.5s var(--transition);
+}
+
+.location-beacon.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.location-beacon-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background-color: var(--text);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: opacity 0.3s var(--transition);
+}
+
+.location-beacon-toggle:hover {
+  opacity: 0.8;
+}
+
+.location-beacon-arrow {
+  font-size: 0.55rem;
+  line-height: 1;
+  transition: transform 0.3s var(--transition);
+}
+
+.location-beacon.open .location-beacon-arrow {
+  transform: rotate(180deg);
+}
+
+.location-beacon-current {
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.location-beacon-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0.35rem;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s var(--transition), opacity 0.3s var(--transition);
+}
+
+.location-beacon.open .location-beacon-menu {
+  max-height: 300px;
+  opacity: 1;
+}
+
+.location-beacon-menu a {
+  display: block;
+  padding: 0.45rem 1rem;
+  font-family: var(--font);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-lighter);
+  background-color: var(--bg);
+  text-decoration: none;
+  transition: color 0.25s var(--transition), background-color 0.25s var(--transition);
+}
+
+.location-beacon-menu a:first-child {
+  padding-top: 0.6rem;
+}
+
+.location-beacon-menu a:last-child {
+  padding-bottom: 0.6rem;
+}
+
+.location-beacon-menu a.beacon-index {
+  color: var(--text-lighter);
+  border-bottom: 1px solid var(--bg-secondary);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+
+.location-beacon-menu a.beacon-index:hover {
+  color: var(--text);
+}
+
+.location-beacon-menu a:hover {
+  color: var(--text);
+  background-color: var(--bg-secondary);
+}
+
+.location-beacon-menu a.beacon-active {
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .location-beacon {
+    bottom: 1.25rem;
+    left: 1rem;
+  }
+
+  .location-beacon-toggle {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .location-beacon-menu a {
+    padding: 0.4rem 0.75rem;
+  }
+}
+
 /* --- Gallery Grid (Mosaic) --- */
 .gallery-section {
   padding: 2rem 2rem 6rem;

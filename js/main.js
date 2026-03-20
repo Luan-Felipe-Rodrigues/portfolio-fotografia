@@ -4,6 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
+  initLocationNav();
   initMasonry();
   initImageLoading();
   initScrollReveal();
@@ -52,6 +53,133 @@ function initNav() {
       a.classList.add('active');
     }
   });
+}
+
+/* --- Location Nav (smooth scroll + floating beacon) --- */
+function initLocationNav() {
+  const locNav = document.querySelector('.location-nav');
+  if (!locNav) return;
+
+  const links = locNav.querySelectorAll('a');
+
+  // Build sections list from links
+  const sections = [];
+  links.forEach(link => {
+    const id = link.getAttribute('href').replace('#', '');
+    const el = document.getElementById(id);
+    if (el) {
+      const label = link.textContent.trim();
+      sections.push({ id, el, label });
+    }
+  });
+
+  // Smooth scroll on link click
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = link.getAttribute('href').replace('#', '');
+      const target = document.getElementById(id);
+      if (!target) return;
+
+      const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 72;
+      const y = target.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  });
+
+  // Create floating beacon with expandable menu (left side)
+  if (!sections.length) return;
+
+  const beacon = document.createElement('div');
+  beacon.className = 'location-beacon';
+
+  let menuHTML = '<div class="location-beacon-menu">';
+  menuHTML += `<a href="#location-index" data-id="location-index" class="beacon-index">Menu</a>`;
+  sections.forEach(s => {
+    menuHTML += `<a href="#${s.id}" data-id="${s.id}">${s.label}</a>`;
+  });
+  menuHTML += '</div>';
+
+  beacon.innerHTML = menuHTML +
+    '<button class="location-beacon-toggle">' +
+    '<span class="location-beacon-current"></span>' +
+    '<span class="location-beacon-arrow">&#9650;</span>' +
+    '</button>';
+
+  document.body.appendChild(beacon);
+
+  const toggle = beacon.querySelector('.location-beacon-toggle');
+  const currentLabel = beacon.querySelector('.location-beacon-current');
+  const menuLinks = beacon.querySelectorAll('.location-beacon-menu a');
+
+  toggle.addEventListener('click', () => {
+    beacon.classList.toggle('open');
+  });
+
+  menuLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      beacon.classList.remove('open');
+
+      if (link.dataset.id === 'location-index') {
+        const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 72;
+        const y = locNav.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        return;
+      }
+
+      const target = document.getElementById(link.dataset.id);
+      if (!target) return;
+
+      const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 72;
+      const y = target.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!beacon.contains(e.target)) {
+      beacon.classList.remove('open');
+    }
+  });
+
+  let ticking = false;
+  function onScroll() {
+    const navHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 72;
+    const locNavBottom = locNav.getBoundingClientRect().bottom;
+    const pastMenu = locNavBottom < navHeight;
+
+    beacon.classList.toggle('visible', pastMenu);
+
+    if (pastMenu) {
+      const offset = navHeight + 100;
+      let activeId = sections[0].id;
+      for (const s of sections) {
+        if (s.el.getBoundingClientRect().top <= offset) {
+          activeId = s.id;
+        }
+      }
+
+      const active = sections.find(s => s.id === activeId);
+      if (active) currentLabel.textContent = active.label;
+
+      menuLinks.forEach(link => {
+        link.classList.toggle('beacon-active', link.dataset.id === activeId);
+      });
+    }
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  onScroll();
 }
 
 /* --- Masonry Layout --- */
