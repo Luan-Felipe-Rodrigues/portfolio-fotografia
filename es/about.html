@@ -34,34 +34,55 @@
     </div>
   </nav>
 
-  <!-- Header -->
-  <section class="page-header">
-    <div class="reveal">
-      <h3>Acerca</h3>
-      <h1>Luan Rodrigues</h1>
-    </div>
-  </section>
-
   <!-- About -->
-  <section class="about-section">
-    <div class="about-image reveal">
-      <img src="../images/about.png" alt="Luan Rodrigues">
+  <section class="about-section" id="about-section">
+    <div class="about-col-video">
+      <div class="about-video-sticky">
+        <h3>Acerca</h3>
+        <h1>Luan Rodrigues</h1>
+        <div class="about-video-wrap"><video id="about-video" src="../images/about-video.mp4" muted playsinline preload="auto"></video></div>
+      </div>
     </div>
-    <div class="about-text reveal">
-      <h2>Fotografío porque observar el mundo con atención me ayuda a entenderlo mejor.</h2>
-      <p>
-        São Paulo, Brasil. Empecé en la fotografía movido por la curiosidad —
-        por la luz que transforma una escena, por el instante que no se repite,
-        por la belleza en lo cotidiano.
-      </p>
-      <p>
-        Mi trabajo transita entre retratos, eventos y proyectos autorales.
-        Busco imágenes honestas, con composición cuidadosa y la mínima
-        interferencia posible.
-      </p>
-      <p class="equipment">
-        Canon EOS M50 Mark II &middot; Godox Flash
-      </p>
+    <div class="about-col-content">
+      <div class="about-stacking-images">
+        <div class="about-stack-item">
+          <img src="../images/lugares/cinque-terre/IMG_5896.jpeg" alt="Cinque Terre">
+        </div>
+        <div class="about-stack-item">
+          <img src="../images/lugares/roma/IMG_5889.jpeg" alt="Roma">
+        </div>
+      </div>
+      <div class="about-text-area">
+        <div class="about-block reveal">
+          <h2>Fotografío porque observar el mundo con atención me ayuda a entenderlo mejor.</h2>
+        </div>
+        <div class="about-block reveal">
+          <p>
+            São Paulo, Brasil. Empecé en la fotografía movido por la curiosidad —
+            por la luz que transforma una escena, por el instante que no se repite,
+            por la belleza en lo cotidiano.
+          </p>
+        </div>
+        <div class="about-block reveal">
+          <p>
+            Mi trabajo transita entre retratos, eventos y proyectos autorales.
+            Busco imágenes honestas, con composición cuidadosa y la mínima
+            interferencia posible.
+          </p>
+        </div>
+        <div class="about-block reveal">
+          <p>
+            Cada proyecto es una oportunidad de ver algo familiar
+            con nuevos ojos. Creo que las mejores fotografías
+            nacen de la paciencia y la presencia.
+          </p>
+        </div>
+        <div class="about-block reveal">
+          <p class="equipment">
+            Canon EOS M50 Mark II &middot; Godox Flash
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -70,6 +91,8 @@
     <p>&copy; 2026 Luan Rodrigues</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="../js/main.js"></script>
 </body>
 </html>

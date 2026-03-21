@@ -223,16 +223,48 @@ nav.scrolled {
   text-align: center;
 }
 
-.hero-content h3 {
+.hero-subtitle {
   margin-bottom: 1.5rem;
-  opacity: 0.6;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.8s var(--transition), transform 0.8s var(--transition);
 }
 
-.hero-content h1 {
+.hero-subtitle.visible {
+  opacity: 0.6;
+  transform: translateY(0);
+}
+
+.hero-title {
   font-size: clamp(2.8rem, 6.5vw, 5.5rem);
   font-weight: 100;
   letter-spacing: -0.02em;
   line-height: 1.15;
+}
+
+.hero-title .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s var(--transition), transform 0.7s var(--transition);
+}
+
+.hero-title .word.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Scatter-to-grid: disable CSS transitions so GSAP has full control */
+.gallery-grid.scatter-active .gallery-item {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  will-change: transform, opacity;
+}
+
+.gallery-grid.scatter-active .gallery-item.gsap-animated {
+  opacity: unset !important;
+  transform: unset !important;
 }
 
 /* --- Location Nav (Lugares page) --- */
@@ -564,32 +596,129 @@ nav.scrolled {
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
   padding: 0 2rem 6rem;
+  padding-top: calc(var(--nav-height) + 3rem);
   max-width: var(--max-width);
   margin: 0 auto;
-  min-height: 60vh;
-  align-items: center;
 }
 
-.about-image {
-  overflow: hidden;
-  background-color: transparent;
+/* Left column: video sticky */
+.about-col-video {
+  position: relative;
 }
 
-.about-image img {
-  width: 100%;
-  height: auto;
+.about-video-sticky {
+  position: sticky;
+  top: calc(var(--nav-height) + 2rem);
 }
 
-.about-text h2 {
-  margin-bottom: 1.5rem;
-}
-
-.about-text p {
+.about-video-sticky h3 {
   margin-bottom: 1rem;
 }
 
-.about-text .equipment {
-  margin-top: 2rem;
+.about-video-sticky h1 {
+  margin-bottom: 1.5rem;
+}
+
+.about-video-wrap {
+  position: relative;
+}
+
+/* Solid cover above the video to hide title descenders when scrolling */
+.about-video-wrap::before {
+  content: '';
+  position: absolute;
+  top: -2rem;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  background-color: var(--bg);
+  z-index: 1;
+}
+
+.about-video-sticky video {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: block;
+  background-color: var(--bg);
+}
+
+/* Right column — starts aligned below "Luan Rodrigues" */
+.about-col-content {
+  position: relative;
+  padding-top: 5.5rem;
+}
+
+/* Stacking sticky images */
+.about-stacking-images {
+  position: relative;
+}
+
+.about-stack-item {
+  position: sticky;
+  top: calc(var(--nav-height) + 2rem);
+  height: 70vh;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.about-stack-item:nth-child(1) {
+  z-index: 1;
+}
+
+.about-stack-item:nth-child(2) {
+  z-index: 2;
+}
+
+.about-stack-item img {
+  max-width: 75%;
+  max-height: 60vh;
+  object-fit: contain;
+  display: block;
+}
+
+.about-stack-item:nth-child(1) img {
+  margin-left: 0;
+}
+
+.about-stack-item:nth-child(2) img {
+  margin-left: auto;
+}
+
+/* Text area below stacking images */
+.about-text-area {
+  position: relative;
+  z-index: 3;
+  padding-top: 4rem;
+  padding-bottom: 2rem;
+  background-color: var(--bg);
+}
+
+.about-block {
+  margin-bottom: 3rem;
+}
+
+.about-block:last-child {
+  margin-bottom: 0;
+}
+
+.about-block h2 {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.about-block p {
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--text-light);
+  max-width: 540px;
+  line-height: 1.8;
+}
+
+.about-block .equipment {
   font-size: 0.8rem;
   color: var(--text-lighter);
   letter-spacing: 0.02em;
@@ -769,11 +898,32 @@ footer p {
   .about-section {
     grid-template-columns: 1fr;
     gap: 2rem;
+    padding-top: calc(var(--nav-height) + 2rem);
   }
 
-  .about-image {
-    aspect-ratio: 16/9;
-    object-position: center 15%;
+  .about-video-sticky {
+    position: relative;
+    top: auto;
+  }
+
+  .about-stack-item {
+    position: relative;
+    top: auto;
+    height: auto;
+    margin-bottom: 1.5rem;
+  }
+
+  .about-stack-item img {
+    max-width: 100%;
+    max-height: none;
+  }
+
+  .about-text-area {
+    padding-top: 1.5rem;
+  }
+
+  .about-block {
+    margin-bottom: 2rem;
   }
 }
 
@@ -874,16 +1024,6 @@ footer p {
   .page-header {
     min-height: 25vh;
     padding: var(--nav-height) 1.25rem 2rem 1.25rem;
-  }
-
-  .about-section {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    gap: 1.5rem;
-  }
-
-  .about-image {
-    aspect-ratio: 4/3;
   }
 
   .lightbox img {

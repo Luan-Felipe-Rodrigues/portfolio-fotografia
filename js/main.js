@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initMasonry();
   initImageLoading();
   initScrollReveal();
+  initHeroAnimation();
+  initScatterToGrid();
+  initScrollVideo();
   initLightbox();
   initSwipe();
 });
@@ -222,6 +225,9 @@ function initMasonry() {
 /* --- Image Loading + Scroll Reveal for Gallery Items --- */
 function initImageLoading() {
   const items = document.querySelectorAll('.gallery-item');
+  // Skip scroll reveal for items inside scatter-active grids (GSAP handles those)
+  const scatterActive = document.querySelector('.gallery-grid.scatter-active');
+
   let revealQueue = [];
   let revealTimer = null;
 
@@ -249,7 +255,7 @@ function initImageLoading() {
     const img = item.querySelector('img');
     if (!img) return;
 
-    // Set up image loading
+    // Set up image loading (always needed)
     if (img.dataset.src) {
       const loadObserver = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
@@ -267,8 +273,10 @@ function initImageLoading() {
       }
     }
 
-    // Observe for scroll reveal
-    revealObserver.observe(item);
+    // Only use CSS reveal for items NOT in scatter grid
+    if (!scatterActive || !scatterActive.contains(item)) {
+      revealObserver.observe(item);
+    }
   });
 }
 
@@ -374,6 +382,144 @@ function initLightbox() {
   // Expose navigate for swipe
   lightbox._navigate = navigate;
   lightbox._close = closeLightbox;
+}
+
+/* --- Hero Text Animation (sequential word fade-in) --- */
+function initHeroAnimation() {
+  const subtitle = document.querySelector('.hero-subtitle');
+  const title = document.querySelector('.hero-title');
+  if (!title) return;
+
+  // Split title into word spans
+  const text = title.textContent.trim();
+  title.innerHTML = text.split(/\s+/).map(word =>
+    `<span class="word">${word}</span>`
+  ).join(' ');
+
+  const words = title.querySelectorAll('.word');
+
+  // Subtitle fades in first after a short delay
+  setTimeout(() => {
+    if (subtitle) subtitle.classList.add('visible');
+  }, 300);
+
+  // Words fade in sequentially
+  words.forEach((word, i) => {
+    setTimeout(() => {
+      word.classList.add('visible');
+    }, 600 + i * 280);
+  });
+}
+
+/* --- Scatter-to-Grid Animation (GSAP ScrollTrigger) --- */
+function initScatterToGrid() {
+  // Only run on home page (has .hero + .gallery-grid)
+  if (!document.querySelector('.hero') || typeof gsap === 'undefined') return;
+
+  const grid = document.querySelector('.gallery-grid');
+  if (!grid) return;
+
+  const items = grid.querySelectorAll('.gallery-item');
+  if (!items.length) return;
+
+  // Mark grid as scatter-active (overrides default reveal animation)
+  grid.classList.add('scatter-active');
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Wait for images to load so masonry positions are set
+  function onReady() {
+    // Mark items for GSAP control, removing CSS overrides
+    items.forEach(item => item.classList.add('gsap-animated'));
+
+    items.forEach((item, i) => {
+      // Random scatter values — like photos tossed on a table
+      const randomX = gsap.utils.random(-120, 120);
+      const randomY = gsap.utils.random(-60, 60);
+      const randomRotation = gsap.utils.random(-12, 12);
+
+      gsap.fromTo(item,
+        {
+          x: randomX,
+          y: randomY,
+          rotation: randomRotation,
+          opacity: 0,
+        },
+        {
+          x: 0,
+          y: 0,
+          rotation: 0,
+          opacity: 1,
+          duration: 1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: item,
+            start: 'top 92%',
+            end: 'top 55%',
+            toggleActions: 'play none none none',
+          },
+          delay: (i % 3) * 0.1,
+        }
+      );
+    });
+  }
+
+  // Check if all home gallery images are loaded
+  const images = grid.querySelectorAll('img');
+  let loaded = 0;
+  const total = images.length;
+
+  if (total === 0) { onReady(); return; }
+
+  images.forEach(img => {
+    if (img.complete && img.naturalHeight > 0) {
+      loaded++;
+      if (loaded >= total) onReady();
+    } else {
+      img.addEventListener('load', () => {
+        loaded++;
+        if (loaded >= total) onReady();
+      });
+      img.addEventListener('error', () => {
+        loaded++;
+        if (loaded >= total) onReady();
+      });
+    }
+  });
+}
+
+/* --- Scroll-driven Video (About page) --- */
+function initScrollVideo() {
+  const video = document.getElementById('about-video');
+  if (!video || typeof gsap === 'undefined') return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function setup() {
+    const duration = video.duration;
+    if (!duration || isNaN(duration)) return;
+
+    const section = document.getElementById('about-section');
+    if (!section) return;
+
+    // Video scrubs across the entire about section scroll
+    gsap.to(video, {
+      currentTime: duration,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.5,
+      },
+    });
+  }
+
+  if (video.readyState >= 1) {
+    setup();
+  } else {
+    video.addEventListener('loadedmetadata', setup);
+  }
 }
 
 /* --- Swipe support for lightbox on mobile --- */
