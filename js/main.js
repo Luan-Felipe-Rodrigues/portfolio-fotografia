@@ -3,6 +3,7 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initHomeGallery();
   initNav();
   initLocationNav();
   initMasonry();
@@ -16,6 +17,131 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
+/* --- Home Gallery: random selection + parallax --- */
+function initHomeGallery() {
+  const grid = document.getElementById('home-gallery');
+  if (!grid) return;
+
+  // Detect base path (root vs /en/ vs /es/)
+  const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
+  const prefix = isSubdir ? '../' : '';
+
+  // Detect language for series links
+  const lang = document.documentElement.lang;
+  let lugaresLink, preweddingLink;
+  if (lang === 'en') {
+    lugaresLink = 'series-places.html';
+    preweddingLink = 'series-prewedding.html';
+  } else {
+    lugaresLink = isSubdir ? 'series-lugares.html' : 'series-lugares.html';
+    preweddingLink = isSubdir ? 'series-prewedding.html' : 'series-prewedding.html';
+  }
+
+  // Photo pools — 1 per collection (each location = its own collection)
+  const collections = [
+    {
+      link: lugaresLink,
+      photos: ['images/lugares/cinque-terre/IMG_5895.jpeg', 'images/lugares/cinque-terre/IMG_5896.jpeg', 'images/lugares/cinque-terre/IMG_5897.jpeg']
+    },
+    {
+      link: lugaresLink,
+      photos: ['images/lugares/italia/IMG_5881.jpeg', 'images/lugares/italia/IMG_5883.jpeg', 'images/lugares/italia/IMG_5886.jpeg']
+    },
+    {
+      link: lugaresLink,
+      photos: ['images/lugares/roma/IMG_5889.jpeg', 'images/lugares/roma/IMG_5891.jpeg', 'images/lugares/roma/IMG_5893.jpeg']
+    },
+    {
+      link: lugaresLink,
+      photos: ['images/lugares/santos/IMG_2948.jpg', 'images/lugares/santos/IMG_2965.jpg']
+    },
+    {
+      link: lugaresLink,
+      photos: ['images/lugares/nova-york/IMG_4480.jpg', 'images/lugares/nova-york/IMG_4481.jpg']
+    },
+    {
+      link: lugaresLink,
+      photos: ['images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpeg.jpg', 'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg.jpg']
+    },
+    {
+      link: lang === 'en' ? 'series-personal.html' : (isSubdir ? 'series-autoral.html' : 'series-autoral.html'),
+      photos: ['images/autoral/IMG_3192.jpeg.jpg', 'images/autoral/IMG_4400.jpeg.jpg', 'images/autoral/IMG_4518.HEIC.jpg']
+    },
+    {
+      link: preweddingLink,
+      photos: ['images/prewedding/IMG_5147.jpg', 'images/prewedding/IMG_5298.jpg', 'images/prewedding/IMG_6052.jpg', 'images/prewedding/IMG_6192.jpg', 'images/prewedding/IMG_6193.jpg', 'images/prewedding/IMG_7191.jpg']
+    },
+  ];
+
+  // Shuffle helper
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // Pick 1 random photo from each collection, then shuffle order
+  const selected = shuffle(
+    collections.map(c => ({
+      src: c.photos[Math.floor(Math.random() * c.photos.length)],
+      link: c.link,
+    }))
+  );
+
+  // Build gallery items
+  selected.forEach(item => {
+    const a = document.createElement('a');
+    a.href = item.link;
+    a.className = 'gallery-item gallery-link';
+    const img = document.createElement('img');
+    img.src = prefix + item.src;
+    img.alt = '';
+    img.loading = 'lazy';
+    a.appendChild(img);
+    grid.appendChild(a);
+  });
+
+  // Parallax on scroll (GSAP)
+  if (typeof gsap === 'undefined') return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Wait for images to load for masonry, then apply parallax
+  const images = grid.querySelectorAll('img');
+  let loaded = 0;
+  const total = images.length;
+
+  function applyParallax() {
+    const items = grid.querySelectorAll('.gallery-link');
+    items.forEach((item, i) => {
+      // Each item gets a different parallax speed
+      const speed = gsap.utils.random(-40, -80);
+      gsap.to(item, {
+        y: speed,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: grid,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.3,
+        },
+      });
+    });
+  }
+
+  images.forEach(img => {
+    const check = () => { loaded++; if (loaded >= total) applyParallax(); };
+    if (img.complete && img.naturalHeight > 0) check();
+    else {
+      img.addEventListener('load', check);
+      img.addEventListener('error', check);
+    }
+  });
+}
 
 /* --- Navigation --- */
 function initNav() {
@@ -321,8 +447,8 @@ function initLightbox() {
   let currentImages = [];
   let currentIndex = 0;
 
-  // Open lightbox on image click
-  document.querySelectorAll('.gallery-item').forEach(item => {
+  // Open lightbox on image click (skip items that are links to series)
+  document.querySelectorAll('.gallery-item:not(.gallery-link)').forEach(item => {
     item.addEventListener('click', () => {
       const img = item.querySelector('img');
       if (!img) return;
@@ -521,6 +647,18 @@ function initScrollVideo() {
     video.addEventListener('loadedmetadata', setup);
   }
 }
+
+/* --- Scroll Indicator (hide on scroll) --- */
+(function() {
+  var indicator = document.getElementById('scroll-indicator');
+  if (!indicator) return;
+  window.addEventListener('scroll', function hide() {
+    if (window.scrollY > 30) {
+      indicator.classList.add('hidden');
+      window.removeEventListener('scroll', hide);
+    }
+  }, { passive: true });
+})();
 
 /* --- Swipe support for lightbox on mobile --- */
 function initSwipe() {
