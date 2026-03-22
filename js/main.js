@@ -39,7 +39,7 @@ function initHomeGallery() {
     { link: lugaresLink, photos: ['images/lugares/santos/IMG_2948.jpg', 'images/lugares/santos/IMG_2965.jpg', 'images/lugares/santos/IMG_3179.jpg'] },
     { link: lugaresLink, photos: ['images/lugares/nova-york/IMG_4480.jpg', 'images/lugares/nova-york/IMG_4481.jpg'] },
     { link: lugaresLink, photos: ['images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpeg.jpg', 'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg.jpg'] },
-    { link: autoralLink, photos: ['images/autoral/IMG_3192.jpeg.jpg', 'images/autoral/IMG_4400.jpeg.jpg', 'images/autoral/IMG_4518.HEIC.jpg', 'images/autoral/IMG_2850.jpg'] },
+    { link: autoralLink, photos: ['images/autoral/IMG_3192.jpeg.jpg', 'images/autoral/IMG_4400.jpeg.jpg', 'images/autoral/IMG_4518.HEIC.jpg', 'images/autoral/IMG_2850.jpg', 'images/autoral/autoral_01.jpg', 'images/autoral/autoral_02.jpg', 'images/autoral/autoral_03.jpg', 'images/autoral/autoral_04.jpg', 'images/autoral/autoral_05.jpg', 'images/autoral/autoral_06.jpg', 'images/autoral/autoral_07.jpg', 'images/autoral/autoral_08.jpg', 'images/autoral/autoral_09.jpg', 'images/autoral/autoral_10.jpg', 'images/autoral/autoral_11.jpg', 'images/autoral/autoral_12.jpg', 'images/autoral/autoral_13.jpg', 'images/autoral/autoral_14.jpg', 'images/autoral/autoral_15.jpg', 'images/autoral/autoral_16.jpg', 'images/autoral/autoral_17.jpg', 'images/autoral/autoral_18.jpg', 'images/autoral/autoral_19.jpg', 'images/autoral/autoral_20.jpg'] },
     { link: preweddingLink, photos: ['images/prewedding/IMG_5147.jpg', 'images/prewedding/IMG_5298.jpg', 'images/prewedding/IMG_6052.jpg', 'images/prewedding/IMG_6192.jpg', 'images/prewedding/IMG_6193.jpg', 'images/prewedding/IMG_7191.jpg'] },
   ];
 
