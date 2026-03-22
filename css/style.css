@@ -83,7 +83,7 @@ nav {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 400;
   height: var(--nav-height);
   padding: 0 2rem;
   display: flex;
@@ -1248,16 +1248,8 @@ footer p {
     top: auto;
   }
 
-  .about-stack-item {
-    position: relative;
-    top: auto;
-    height: auto;
-    margin-bottom: 1.5rem;
-  }
-
-  .about-stack-item img {
-    max-width: 100%;
-    max-height: none;
+  .about-stacking-images {
+    display: none;
   }
 
   .about-text-area {
