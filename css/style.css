@@ -242,6 +242,22 @@ nav.scrolled {
   line-height: 1.15;
 }
 
+.hero-phrase {
+  margin-top: 1.5rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 200;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.8s var(--transition), transform 0.8s var(--transition);
+}
+
+.hero-phrase.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .hero-title .word {
   display: inline-block;
   opacity: 0;
@@ -897,6 +913,141 @@ a.gallery-link:hover img {
 @keyframes scrollBounce {
   0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.4; }
   50% { transform: rotate(45deg) translateY(6px); opacity: 1; }
+}
+
+/* --- All Work (draggable grid) --- */
+.all-work {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  cursor: grab;
+  background-color: var(--bg);
+  opacity: 0;
+  animation: allWorkFadeIn 1.2s ease forwards 0.2s;
+}
+
+@keyframes allWorkFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.all-work:active {
+  cursor: grabbing;
+}
+
+.all-work-container {
+  width: max-content;
+  will-change: transform;
+  padding-top: var(--nav-height);
+}
+
+.all-work-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.5rem;
+  padding: 1rem;
+  width: max-content;
+}
+
+.all-work-item {
+  width: 20vw;
+  aspect-ratio: 1;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.92);
+  animation: allWorkItemIn 0.6s ease forwards;
+  transition: transform 0.4s var(--transition), opacity 0.4s var(--transition);
+}
+
+@keyframes allWorkItemIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.all-work:active .all-work-item {
+  transform: scale(0.96);
+}
+
+.all-work-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.all-work-item:hover {
+  opacity: 0.85;
+}
+
+/* Hint text */
+.all-work-hint {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  transition: opacity 0.6s var(--transition);
+  pointer-events: none;
+}
+
+.all-work-hint span {
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-lighter);
+}
+
+.all-work-hint.hidden {
+  opacity: 0;
+}
+
+/* "Ver tudo" link on About page */
+.about-all-work {
+  display: inline-block;
+  margin-top: 3rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  position: relative;
+  transition: color 0.3s var(--transition);
+}
+
+.about-all-work::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--text);
+  transition: width 0.3s var(--transition);
+}
+
+.about-all-work:hover {
+  color: var(--text);
+}
+
+.about-all-work:hover::after {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .all-work-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .all-work-item {
+    width: 40vw;
+  }
 }
 
 /* --- Footer --- */

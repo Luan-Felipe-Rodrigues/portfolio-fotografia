@@ -66,7 +66,7 @@ function initHomeGallery() {
     },
     {
       link: lang === 'en' ? 'series-personal.html' : (isSubdir ? 'series-autoral.html' : 'series-autoral.html'),
-      photos: ['images/autoral/IMG_3192.jpeg.jpg', 'images/autoral/IMG_4400.jpeg.jpg', 'images/autoral/IMG_4518.HEIC.jpg']
+      photos: ['images/autoral/IMG_3192.jpeg.jpg', 'images/autoral/IMG_4400.jpeg.jpg', 'images/autoral/IMG_4518.HEIC.jpg', 'images/autoral/IMG_2850.jpg']
     },
     {
       link: preweddingLink,
@@ -178,9 +178,12 @@ function initNav() {
   const current = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-links a').forEach(a => {
     const href = a.getAttribute('href');
-    if (href === current || (current === 'index.html' && href === 'index.html')) {
-      a.classList.add('active');
-    }
+    const isMatch = href === current
+      || (current.startsWith('series') && href.startsWith('series.'))
+      || (current.startsWith('trabalho') && href.startsWith('trabalho'))
+      || (current.startsWith('work') && href.startsWith('work'))
+      || (current.startsWith('trabajo') && href.startsWith('trabajo'));
+    if (isMatch) a.classList.add('active');
   });
 }
 
@@ -535,6 +538,14 @@ function initHeroAnimation() {
       word.classList.add('visible');
     }, 600 + i * 280);
   });
+
+  // Phrase fades in after all words
+  const phrase = document.querySelector('.hero-phrase');
+  if (phrase) {
+    setTimeout(() => {
+      phrase.classList.add('visible');
+    }, 600 + words.length * 280 + 300);
+  }
 }
 
 /* --- Scatter-to-Grid Animation (GSAP ScrollTrigger) --- */
