@@ -112,7 +112,7 @@
   shuffled.forEach(function(src, i) {
     var item = document.createElement('div');
     item.className = 'all-work-item';
-    item.style.animationDelay = (0.3 + i * 0.03) + 's';
+    item.style.animationDelay = (0.1 + i * 0.015) + 's';
     var img = document.createElement('img');
     img.src = prefix + src;
     img.alt = '';

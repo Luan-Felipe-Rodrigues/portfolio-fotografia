@@ -204,7 +204,155 @@ nav.scrolled {
   transform: rotate(-45deg) translate(4px, -4px);
 }
 
-/* --- Hero (Home) --- */
+/* --- Showcase (Home) --- */
+.showcase {
+  padding-top: var(--nav-height);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+#showcase-top,
+#showcase-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.showcase-item {
+  padding: 1rem;
+  overflow: hidden;
+  width: 50%;
+}
+
+.showcase-item:nth-child(odd) {
+  padding-top: 4rem;
+}
+
+.showcase-item a {
+  display: block;
+  overflow: hidden;
+}
+
+.showcase-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.8s var(--transition);
+}
+
+.showcase-item a:hover img {
+  transform: scale(1.02);
+}
+
+/* Separator between photo groups */
+.showcase-separator {
+  width: 100%;
+  padding: 8rem 2rem;
+  text-align: center;
+}
+
+.showcase-separator h1 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 100;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.showcase-separator p {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 200;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+  margin: 0 auto;
+  opacity: 0.5;
+}
+
+/* Footer at bottom of showcase */
+.showcase-footer {
+  width: 100%;
+  padding: 6rem 2rem 3rem;
+  text-align: center;
+  border-top: 1px solid var(--bg-secondary);
+  margin-top: 4rem;
+}
+
+.showcase-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.showcase-footer-links a {
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  position: relative;
+  transition: color 0.3s var(--transition);
+}
+
+.showcase-footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--text);
+  transition: width 0.3s var(--transition);
+}
+
+.showcase-footer-links a:hover {
+  color: var(--text);
+}
+
+.showcase-footer-links a:hover::after {
+  width: 100%;
+}
+
+.showcase-footer p {
+  font-size: 0.75rem;
+  color: var(--text-lighter);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+  .showcase {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .showcase-item {
+    width: 100%;
+    padding: 0.75rem 0;
+  }
+
+  .showcase-item:nth-child(odd) {
+    padding-top: 0.75rem;
+  }
+
+  .showcase-separator {
+    padding: 4rem 0;
+  }
+
+  .showcase-footer {
+    margin-top: 2rem;
+    padding: 3rem 0 2rem;
+  }
+
+  .showcase-footer-links {
+    gap: 1.5rem;
+  }
+}
+
+/* --- Hero (legacy, kept for sub-pages if needed) --- */
 .hero {
   min-height: 100vh;
   display: flex;
@@ -221,18 +369,6 @@ nav.scrolled {
   max-width: var(--max-width);
   width: 100%;
   text-align: center;
-}
-
-.hero-subtitle {
-  margin-bottom: 1.5rem;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.8s var(--transition), transform 0.8s var(--transition);
-}
-
-.hero-subtitle.visible {
-  opacity: 0.6;
-  transform: translateY(0);
 }
 
 .hero-title {
@@ -254,7 +390,7 @@ nav.scrolled {
 }
 
 .hero-phrase.visible {
-  opacity: 1;
+  opacity: 0.5;
   transform: translateY(0);
 }
 
@@ -926,7 +1062,7 @@ a.gallery-link:hover img {
   cursor: grab;
   background-color: var(--bg);
   opacity: 0;
-  animation: allWorkFadeIn 1.2s ease forwards 0.2s;
+  animation: allWorkFadeIn 0.6s ease forwards;
 }
 
 @keyframes allWorkFadeIn {
@@ -957,13 +1093,13 @@ a.gallery-link:hover img {
   aspect-ratio: 1;
   overflow: hidden;
   opacity: 0;
-  transform: scale(0.92);
-  animation: allWorkItemIn 0.6s ease forwards;
+  transform: scale(0.95);
+  animation: allWorkItemIn 0.4s ease forwards;
   transition: transform 0.4s var(--transition), opacity 0.4s var(--transition);
 }
 
 @keyframes allWorkItemIn {
-  from { opacity: 0; transform: scale(0.92); }
+  from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
 
