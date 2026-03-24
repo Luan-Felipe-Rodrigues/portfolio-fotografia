@@ -1,69 +1,81 @@
 # Luan Rodrigues — Photography Portfolio
 
-A minimalist photography portfolio built with pure HTML, CSS, and JavaScript. No frameworks, no dependencies.
+Minimalist photography portfolio. Pure HTML, CSS, and JavaScript. No frameworks.
+
+**Live:** [luanrodrigues.photography](https://luanrodrigues.photography)
 
 ## Features
 
-- **Masonry gallery** — CSS columns layout that adapts to any number of photos without gaps
-- **Lightbox viewer** — Click any photo to enter fullscreen mode with keyboard navigation (arrows, Esc) and swipe support on mobile
-- **Photo counter** — Shows current position (e.g. "12 / 241") in lightbox mode
-- **Multilingual** — Full content in Portuguese, English, and Spanish with language switcher in the nav
-- **Mobile-first responsive** — 3 columns on desktop, 2 on tablet/mobile, glassmorphism nav with hamburger menu
-- **Lazy loading** — Images load as you scroll with a smooth fade-in effect
-- **Scroll reveal** — Subtle entrance animations on page sections
-- **Optimized images** — All photos resized to 1600px width for fast loading
+- **Draggable portfolio grid** — Explore all photos by dragging, arrow keys, or touch. Auto-drift on load
+- **Lightbox viewer** — Click any photo for fullscreen with keyboard navigation (arrows, Esc) and swipe on mobile
+- **Masonry galleries** — CSS grid layout for series pages, adapts to any aspect ratio
+- **Scroll-driven video** — About page video scrubs with scroll position (desktop, GSAP ScrollTrigger)
+- **Multilingual** — Full content in Portuguese, English, and Spanish
+- **Mobile-optimized** — Responsive layout, touch-friendly navigation, poster fallback for video
+- **Lazy loading** — Images load on scroll with fade-in
+- **Location beacon** — Floating nav for multi-location series (Lugares, Eventos)
 
 ## Pages
 
 | Page | Description |
 |------|-------------|
-| Home | Hero + curated photo selection |
-| Series | Grid of photography categories (Portraits, Events, Personal, Pre-Wedding) |
-| Series Detail | Full photo gallery per series (masonry layout) |
-| About | Bio, background, and equipment |
+| Home | Editorial showcase — random photo per collection, 2-column offset layout |
+| Portfolio | Draggable grid with all photos + lightbox |
+| Series | Cards linking to Lugares, Autoral, Pre-Wedding |
+| Lugares | 7 locations with floating location nav |
+| Eventos | 3 event sections with location nav |
+| Pre-Wedding | 14 photos |
+| Autoral | 24 photos |
+| About | Scroll-controlled video (desktop) / poster (mobile) + bio |
 | Contact | Email, Instagram, WhatsApp |
-
-## Series
-
-- **Pre-Wedding** — Pri & Michel (241 photos)
-- **Portraits** — Coming soon
-- **Events** — Coming soon
-- **Personal** — Coming soon
 
 ## Tech Stack
 
-- HTML5
-- CSS3 (custom properties, CSS columns, clamp(), backdrop-filter)
-- Vanilla JavaScript (IntersectionObserver, touch events)
+- HTML5 + CSS3 (custom properties, grid, clamp, backdrop-filter)
+- Vanilla JavaScript (IntersectionObserver, touch events, drag-to-pan)
+- GSAP + ScrollTrigger (CDN, About page only)
 - Google Fonts (Inter)
 
 ## Structure
 
 ```
 ├── index.html              # Home (PT)
+├── trabalho.html           # Portfolio — draggable grid (PT)
 ├── series.html             # Series listing (PT)
-├── series-prewedding.html  # Pre-Wedding gallery (PT)
+├── series-lugares.html     # Lugares — 7 locations (PT)
+├── series-eventos.html     # Eventos (PT)
+├── series-prewedding.html  # Pre-Wedding (PT)
+├── series-autoral.html     # Autoral (PT)
 ├── about.html              # About (PT)
 ├── contact.html            # Contact (PT)
 ├── en/                     # English pages
 ├── es/                     # Spanish pages
 ├── css/style.css           # All styles
-├── js/main.js              # All scripts
+├── js/main.js              # Core JS (nav, lightbox, GSAP, masonry)
+├── js/allwork.js           # Portfolio grid (drag, arrows, lightbox)
 ├── images/
-│   ├── prewedding/         # 241 photos (1600px, ~85MB total)
-│   └── about.png           # About page photo
-└── generate-prewedding.sh  # Script to regenerate gallery from images folder
+│   ├── lugares/            # Location photos by city
+│   ├── prewedding/         # Pre-Wedding photos
+│   ├── autoral/            # Personal/autoral photos
+│   ├── eventos/            # Event photos
+│   ├── about-video.mp4     # Scroll-driven video
+│   └── about-poster.jpg    # Mobile fallback
+└── CNAME                   # Custom domain config
 ```
 
 ## Local Development
 
-Just open `index.html` in a browser. No build step needed.
+Open `index.html` in a browser. No build step needed.
 
-To regenerate the Pre-Wedding pages after adding/removing photos:
-
+For mobile testing on the same Wi-Fi:
 ```bash
-bash generate-prewedding.sh
+python3 -m http.server 8000
+# Access from phone: http://<your-local-ip>:8000
 ```
+
+## Hosting
+
+GitHub Pages with automatic deploy on push (~40s). Custom domain via Cloudflare DNS.
 
 ## License
 
