@@ -184,7 +184,8 @@ nav.scrolled {
   background: none;
   border: none;
   padding: 4px;
-  z-index: 502;
+  position: relative;
+  z-index: 10000;
 }
 
 .nav-toggle span {
@@ -809,6 +810,10 @@ a.gallery-link:hover img {
   display: block;
 }
 
+.about-video-poster {
+  display: none;
+}
+
 /* Blend video edges with page background */
 .about-video-wrap::after {
   content: '';
@@ -835,6 +840,7 @@ a.gallery-link:hover img {
   height: 70vh;
   display: flex;
   align-items: flex-start;
+  justify-content: flex-start;
   overflow: hidden;
 }
 
@@ -845,6 +851,7 @@ a.gallery-link:hover img {
 
 .about-stack-item:nth-child(2) {
   z-index: 2;
+  justify-content: flex-end;
 }
 
 .about-stack-item img {
@@ -852,14 +859,6 @@ a.gallery-link:hover img {
   max-height: 60vh;
   object-fit: contain;
   display: block;
-}
-
-.about-stack-item:nth-child(1) img {
-  margin-left: 0;
-}
-
-.about-stack-item:nth-child(2) img {
-  margin-left: auto;
 }
 
 /* Text area below stacking images */
@@ -1144,6 +1143,74 @@ a.gallery-link:hover img {
   opacity: 0;
 }
 
+/* --- Portfolio Lightbox --- */
+.allwork-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.allwork-lightbox.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.allwork-lightbox img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+}
+
+.allwork-lb-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.allwork-lb-prev,
+.allwork-lb-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 2.5rem;
+  cursor: pointer;
+  padding: 1rem;
+}
+
+.allwork-lb-prev { left: 0.5rem; }
+.allwork-lb-next { right: 0.5rem; }
+
+.allwork-lb-prev:hover,
+.allwork-lb-next:hover {
+  color: #fff;
+}
+
+.allwork-lb-counter {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
 /* "Ver tudo" link on About page */
 .about-all-work {
   display: inline-block;
@@ -1238,9 +1305,17 @@ footer p {
   }
 
   .about-section {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding-top: calc(var(--nav-height) + 2rem);
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--nav-height) + 2rem) 1.5rem 4rem;
+  }
+
+  .about-col-video {
+    order: 1;
+  }
+
+  .about-col-content {
+    order: 2;
   }
 
   .about-video-sticky {
@@ -1248,16 +1323,34 @@ footer p {
     top: auto;
   }
 
+  .about-video-sticky video {
+    display: none;
+  }
+
+  .about-video-wrap::before,
+  .about-video-wrap::after {
+    display: none;
+  }
+
   .about-stacking-images {
     display: none;
   }
 
+  .about-header {
+    margin-bottom: 1.5rem;
+  }
+
   .about-text-area {
-    padding-top: 1.5rem;
+    padding-top: 0;
   }
 
   .about-block {
     margin-bottom: 2rem;
+  }
+
+  .about-video-poster {
+    display: block;
+    width: 100%;
   }
 }
 
@@ -1279,23 +1372,26 @@ footer p {
   }
 
   .nav-links {
+    display: flex;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg);
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #faf9f5;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 2.5rem;
+    visibility: hidden;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.35s var(--transition);
-    z-index: 500;
+    transition: opacity 0.35s var(--transition), visibility 0.35s;
+    z-index: 9998;
   }
 
   .nav-links.open {
+    visibility: visible;
     opacity: 1;
     pointer-events: all;
   }
@@ -1310,7 +1406,7 @@ footer p {
     bottom: 3rem;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 501;
+    z-index: 9999;
     margin-left: 0;
     padding-left: 0;
     border-left: none;
@@ -1319,7 +1415,7 @@ footer p {
     transition: opacity 0.35s var(--transition);
   }
 
-  .nav-links.open ~ .nav-lang {
+  .nav-lang.open {
     opacity: 1;
     pointer-events: all;
   }

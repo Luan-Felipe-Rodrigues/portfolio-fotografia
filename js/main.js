@@ -100,11 +100,19 @@ function initNav() {
 
   // Mobile menu
   if (toggle && links) {
+    // Move menu overlay to body so it escapes nav's stacking context
+    const langSwitcher = document.querySelector('.nav-lang');
+    if (window.innerWidth <= 768) {
+      document.body.appendChild(links);
+      if (langSwitcher) document.body.appendChild(langSwitcher);
+    }
+
     toggle.addEventListener('click', () => {
       const isOpen = links.classList.toggle('open');
       toggle.classList.toggle('active', isOpen);
       toggle.setAttribute('aria-expanded', isOpen);
       document.body.style.overflow = isOpen ? 'hidden' : '';
+      if (langSwitcher) langSwitcher.classList.toggle('open', isOpen);
     });
 
     // Close menu on link click
@@ -114,6 +122,7 @@ function initNav() {
         toggle.classList.remove('active');
         toggle.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
+        if (langSwitcher) langSwitcher.classList.remove('open');
       });
     });
   }
@@ -566,7 +575,12 @@ function initScatterToGrid() {
 /* --- Scroll-driven Video (About page) --- */
 function initScrollVideo() {
   const video = document.getElementById('about-video');
-  if (!video || typeof gsap === 'undefined') return;
+  if (!video) return;
+
+  // Mobile: no video, poster image shown via CSS
+  if (window.innerWidth <= 1024) return;
+
+  if (typeof gsap === 'undefined') return;
 
   gsap.registerPlugin(ScrollTrigger);
 
