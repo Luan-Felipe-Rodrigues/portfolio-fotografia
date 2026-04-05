@@ -3,6 +3,7 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initHeroMask();
   initHomeGallery();
   initNav();
   initLocationNav();
@@ -18,6 +19,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+/* --- Hero Mask: Apple-style text reveal on scroll --- */
+function initHeroMask() {
+  const section = document.getElementById('hero-mask');
+  const text = document.getElementById('hero-mask-text');
+  if (!section || !text || typeof gsap === 'undefined') return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Start: font-size so large the text covers the whole viewport (full image visible)
+  // End: font-size small enough to read (image only visible through letters)
+  gsap.fromTo(text,
+    { attr: { 'font-size': 2000 } },
+    {
+      attr: { 'font-size': 180 },
+      ease: 'power1.in',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.5,
+      },
+    }
+  );
+}
+
 /* --- Home Gallery: random selection + parallax --- */
 function initHomeGallery() {
   const top = document.getElementById('showcase-top');
@@ -29,7 +55,6 @@ function initHomeGallery() {
   const lang = document.documentElement.lang;
 
   let lugaresLink = lang === 'en' ? 'series-places.html' : 'series-lugares.html';
-  let preweddingLink = 'series-prewedding.html';
   let autoralLink = lang === 'en' ? 'series-personal.html' : 'series-autoral.html';
 
   const collections = [
@@ -40,7 +65,6 @@ function initHomeGallery() {
     { link: lugaresLink, photos: ['images/lugares/nova-york/IMG_4480.jpg', 'images/lugares/nova-york/IMG_4481.jpg'] },
     { link: lugaresLink, photos: ['images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpeg.jpg', 'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg.jpg'] },
     { link: autoralLink, photos: ['images/autoral/IMG_3192.jpeg.jpg', 'images/autoral/IMG_4400.jpeg.jpg', 'images/autoral/IMG_4518.HEIC.jpg', 'images/autoral/IMG_2850.jpg', 'images/autoral/autoral_01.jpg', 'images/autoral/autoral_02.jpg', 'images/autoral/autoral_03.jpg', 'images/autoral/autoral_04.jpg', 'images/autoral/autoral_05.jpg', 'images/autoral/autoral_06.jpg', 'images/autoral/autoral_07.jpg', 'images/autoral/autoral_08.jpg', 'images/autoral/autoral_09.jpg', 'images/autoral/autoral_10.jpg', 'images/autoral/autoral_11.jpg', 'images/autoral/autoral_12.jpg', 'images/autoral/autoral_13.jpg', 'images/autoral/autoral_14.jpg', 'images/autoral/autoral_15.jpg', 'images/autoral/autoral_16.jpg', 'images/autoral/autoral_17.jpg', 'images/autoral/autoral_18.jpg', 'images/autoral/autoral_19.jpg', 'images/autoral/autoral_20.jpg'] },
-    { link: preweddingLink, photos: ['images/prewedding/IMG_5147.jpg', 'images/prewedding/IMG_5298.jpg', 'images/prewedding/IMG_6052.jpg', 'images/prewedding/IMG_6192.jpg', 'images/prewedding/IMG_6193.jpg', 'images/prewedding/IMG_7191.jpg'] },
   ];
 
   function shuffle(arr) {
