@@ -75,6 +75,21 @@
     // Rio de Janeiro
     'images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpeg.jpg',
     'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg.jpg',
+    // Pre-Wedding
+    'images/prewedding/IMG_4449.jpg',
+    'images/prewedding/IMG_4944.jpg',
+    'images/prewedding/IMG_4980.jpg',
+    'images/prewedding/IMG_5147.jpg',
+    'images/prewedding/IMG_5190.jpg',
+    'images/prewedding/IMG_5298.jpg',
+    'images/prewedding/IMG_5429.jpg',
+    'images/prewedding/IMG_5431.jpg',
+    'images/prewedding/IMG_5741.jpg',
+    'images/prewedding/IMG_6052.jpg',
+    'images/prewedding/IMG_6192.jpg',
+    'images/prewedding/IMG_6193.jpg',
+    'images/prewedding/IMG_6360.jpg',
+    'images/prewedding/IMG_7191.jpg',
     // Autoral
     'images/autoral/IMG_3192.jpeg.jpg',
     'images/autoral/IMG_4400.jpeg.jpg',
