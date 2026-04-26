@@ -337,6 +337,7 @@
   function lbShow() {
     lbImg.src = lbPhotos[lbIndex];
     lbCounter.textContent = (lbIndex + 1) + ' / ' + lbPhotos.length;
+    lightbox.dispatchEvent(new Event('lr:photo-changed'));
   }
 
   function lbOpen(src) {
@@ -396,4 +397,17 @@
     }
     touchDistX = 0; touchDistY = 0;
   }, { passive: true });
+
+  // Attach the like button. main.js has already kicked off the likes.js loader,
+  // so we just wait for it to be ready before wiring up.
+  function attachLikes() {
+    if (!window.LR_LIKES) return;
+    window.LR_LIKES.attachToLightbox({
+      lightbox: lightbox,
+      getCurrentSrc: function() { return lbImg.src; },
+      getImage: function() { return lbImg; },
+    });
+  }
+  if (window.LR_LIKES) attachLikes();
+  else document.addEventListener('lr:likes-ready', attachLikes, { once: true });
 })();

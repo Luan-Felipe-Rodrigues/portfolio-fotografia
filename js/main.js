@@ -2,6 +2,23 @@
    Luan Rodrigues — Portfolio JS
    ========================================================================== */
 
+// Load the likes module on every page (no-op on pages without a lightbox).
+// Done once at script eval time so DOMContentLoaded handlers can rely on it.
+(function loadLikes() {
+  if (window.LR_LIKES || document.getElementById('lr-likes-loader')) return;
+  const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
+  const s = document.createElement('script');
+  s.id = 'lr-likes-loader';
+  s.src = (isSubdir ? '../' : '') + 'js/likes.js';
+  s.async = false;
+  document.head.appendChild(s);
+})();
+
+function whenLikesReady(cb) {
+  if (window.LR_LIKES) cb();
+  else document.addEventListener('lr:likes-ready', cb, { once: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initHomeGallery();
   initNav();
@@ -430,6 +447,7 @@ function initLightbox() {
     if (currentImages[currentIndex]) {
       lightboxImg.src = currentImages[currentIndex];
       counter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
+      lightbox.dispatchEvent(new Event('lr:photo-changed'));
     }
   }
 
@@ -464,6 +482,15 @@ function initLightbox() {
   // Expose navigate for swipe
   lightbox._navigate = navigate;
   lightbox._close = closeLightbox;
+
+  // Attach the like button (no-op if the likes module isn't ready or API isn't set)
+  whenLikesReady(() => {
+    window.LR_LIKES.attachToLightbox({
+      lightbox: lightbox,
+      getCurrentSrc: () => lightboxImg.src,
+      getImage: () => lightboxImg,
+    });
+  });
 }
 
 /* --- Hero Text Animation (sequential word fade-in) --- */

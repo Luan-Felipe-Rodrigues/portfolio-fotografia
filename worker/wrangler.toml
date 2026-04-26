@@ -1,0 +1,8 @@
+name = "luan-portfolio-likes"
+main = "likes-worker.js"
+compatibility_date = "2026-04-26"
+
+[[kv_namespaces]]
+binding = "LIKES"
+# Replace with the id printed by `wrangler kv:namespace create LIKES`
+id = "REPLACE_WITH_YOUR_KV_ID"

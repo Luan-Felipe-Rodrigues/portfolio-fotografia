@@ -1072,6 +1072,118 @@ a.gallery-link:hover img {
   .scroll-indicator { display: none; }
 }
 
+/* --- Likes (heart on lightbox photos) --- */
+.lr-like {
+  position: absolute;
+  bottom: 1.4rem;
+  right: 1.6rem;
+  z-index: 250;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(20, 20, 20, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.78;
+  transition: opacity 0.3s var(--transition), transform 0.2s var(--transition);
+}
+
+.lr-like:hover {
+  opacity: 1;
+}
+
+.lr-like:active {
+  transform: scale(0.95);
+}
+
+.lr-like-icon {
+  display: block;
+  overflow: visible;
+}
+
+.lr-like-path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  transition: fill 0.25s var(--transition), stroke-width 0.25s var(--transition);
+}
+
+.lr-like.liked .lr-like-path {
+  fill: currentColor;
+  stroke-width: 1.2;
+}
+
+.lr-like-count {
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  min-width: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lr-like-count:empty {
+  display: none;
+}
+
+/* Heart pulse on click */
+.lr-like.lr-pulsing .lr-like-icon {
+  animation: lrPulse 0.55s cubic-bezier(0.2, 0.7, 0.2, 1.4);
+}
+
+@keyframes lrPulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  60%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+/* Camera flash overlay (per-lightbox) */
+.lr-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 240;
+}
+
+.lr-flash.lr-flashing {
+  animation: lrFlash 0.45s ease-out;
+}
+
+@keyframes lrFlash {
+  0%   { opacity: 0; }
+  8%   { opacity: 0.92; }
+  100% { opacity: 0; }
+}
+
+/* Subtle photo shake while flashing */
+.lr-shaking {
+  animation: lrShake 0.4s ease-out !important;
+}
+
+@keyframes lrShake {
+  0%   { transform: translate(0, 0) rotate(0); }
+  20%  { transform: translate(-3px, -1px) rotate(-0.5deg); }
+  40%  { transform: translate(3px, 1px) rotate(0.5deg); }
+  60%  { transform: translate(-2px, 1px) rotate(-0.3deg); }
+  80%  { transform: translate(2px, -1px) rotate(0.3deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+@media (max-width: 768px) {
+  .lr-like {
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.45rem 0.7rem;
+  }
+}
+
 /* --- All Work (draggable grid) --- */
 .all-work {
   position: fixed;
