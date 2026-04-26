@@ -8,9 +8,19 @@
 (function() {
   if (window.LR_LIKES) return;
 
-  // Set this after the Worker deploy. Empty string = local-only mode (button works,
-  // counts don't persist or sync).
-  const API = '';
+  // Supabase backend. The publishable key is safe in the frontend because
+  // RLS keeps the photo_likes table read-only for anon and writes go through
+  // the SECURITY DEFINER function `increment_like` which clamps deltas.
+  const SUPABASE_URL = 'https://junfgutjyicdrvpoyuzz.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_GY-aCPbwOTu_BXGGGNx5rQ_Rmc_Nddb';
+  const ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
+
+  function authHeaders() {
+    return {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+    };
+  }
 
   const LS_KEY = 'lr_liked_v1';
   const cache = Object.create(null);
@@ -49,27 +59,39 @@
   }
 
   async function fetchCounts(ids) {
-    if (!API || !ids || !ids.length) return {};
+    if (!ENABLED || !ids || !ids.length) return {};
     try {
-      const res = await fetch(API + '/likes?ids=' + encodeURIComponent(ids.join(',')));
+      const idsParam = ids.map(encodeURIComponent).join(',');
+      const url = SUPABASE_URL + '/rest/v1/photo_likes?select=photo_id,count&photo_id=in.(' + idsParam + ')';
+      const res = await fetch(url, { headers: authHeaders() });
       if (!res.ok) return {};
-      const data = await res.json();
-      Object.assign(cache, data);
-      return data;
+      const rows = await res.json();
+      const counts = {};
+      rows.forEach(function(r) { counts[r.photo_id] = r.count; });
+      Object.assign(cache, counts);
+      return counts;
     } catch (e) {
       return {};
     }
   }
 
   async function postLike(id, action) {
-    if (!API) return null;
+    if (!ENABLED) return null;
     try {
-      const method = action === 'add' ? 'POST' : 'DELETE';
-      const res = await fetch(API + '/like/' + encodeURIComponent(id), { method });
+      const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/increment_like', {
+        method: 'POST',
+        headers: Object.assign({}, authHeaders(), { 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          p_photo_id: id,
+          p_delta: action === 'add' ? 1 : -1,
+        }),
+      });
       if (!res.ok) return null;
-      const data = await res.json();
-      cache[id] = data.count;
-      return data;
+      const value = await res.json();
+      // RPC returning integer comes back as a bare number
+      const count = typeof value === 'number' ? value : (value && value.count) || 0;
+      cache[id] = count;
+      return { id, count: count };
     } catch (e) {
       return null;
     }
@@ -199,14 +221,14 @@
     lightbox.addEventListener('lr:photo-changed', function() {
       update();
       const id = btn.dataset.id;
-      if (id && API) fetchCounts([id]).then(update);
+      if (id && ENABLED) fetchCounts([id]).then(update);
     });
 
     const obs = new MutationObserver(function() {
       if (lightbox.classList.contains('active')) {
         update();
         const id = btn.dataset.id;
-        if (id && API) fetchCounts([id]).then(update);
+        if (id && ENABLED) fetchCounts([id]).then(update);
       }
     });
     obs.observe(lightbox, { attributes: true, attributeFilter: ['class'] });
