@@ -15,6 +15,19 @@
   const LS_KEY = 'lr_liked_v1';
   const cache = Object.create(null);
 
+  const PROMPTS = {
+    pt: 'Gostou?',
+    en: 'Liked it?',
+    es: '¿Te gusta?',
+  };
+
+  function getLang() {
+    const lang = (document.documentElement.lang || '').toLowerCase();
+    if (lang.indexOf('en') === 0) return 'en';
+    if (lang.indexOf('es') === 0) return 'es';
+    return 'pt';
+  }
+
   function loadLiked() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; }
     catch (e) { return {}; }
@@ -94,9 +107,29 @@
     if (lightbox.dataset.lrLikeAttached === '1') return;
     lightbox.dataset.lrLikeAttached = '1';
 
+    // Wrap the img so the cluster (prompt + heart) is anchored to the photo
+    // bounds rather than the viewport. The wrapper auto-sizes to the rendered
+    // image because img has max-width/max-height and object-fit: contain.
+    const img = getImage();
+    let wrap = lightbox.querySelector('.lr-photo-wrap');
+    if (img && !wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'lr-photo-wrap';
+      img.parentElement.insertBefore(wrap, img);
+      wrap.appendChild(img);
+    }
+
+    const cluster = document.createElement('div');
+    cluster.className = 'lr-like-cluster';
+    const prompt = document.createElement('span');
+    prompt.className = 'lr-like-prompt';
+    prompt.textContent = PROMPTS[getLang()] || PROMPTS.pt;
     const btn = buildButton();
+    cluster.appendChild(prompt);
+    cluster.appendChild(btn);
+    (wrap || lightbox).appendChild(cluster);
+
     const flash = buildFlash();
-    lightbox.appendChild(btn);
     lightbox.appendChild(flash);
 
     const liked = loadLiked();
