@@ -90,6 +90,15 @@
     'images/prewedding/IMG_6193.jpg',
     'images/prewedding/IMG_6360.jpg',
     'images/prewedding/IMG_7191.jpg',
+    // Autoral - Abril 2026
+    'images/autoral/abril-2026/IMG_7287.jpg',
+    'images/autoral/abril-2026/IMG_7289.jpg',
+    'images/autoral/abril-2026/IMG_7291.jpg',
+    'images/autoral/abril-2026/IMG_7294.jpg',
+    'images/autoral/abril-2026/IMG_7339.jpg',
+    'images/autoral/abril-2026/IMG_7347.jpg',
+    'images/autoral/abril-2026/IMG_7370.jpg',
+    'images/autoral/abril-2026/IMG_7374.jpg',
     // Autoral - Março 2026
     'images/autoral/marco-2026/IMG_7208.jpg',
     'images/autoral/marco-2026/IMG_7213.jpg',
