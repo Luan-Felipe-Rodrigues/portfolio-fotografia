@@ -1087,9 +1087,9 @@ a.gallery-link:hover img {
   right: 0.7rem;
   z-index: 5;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.35rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
   line-height: 1;
   pointer-events: none;
 }
@@ -1101,7 +1101,6 @@ a.gallery-link:hover img {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
-  padding-right: 0.35rem;
   user-select: none;
   pointer-events: none;
 }
@@ -1210,7 +1209,7 @@ a.gallery-link:hover img {
   .lr-like-cluster {
     bottom: 0.5rem;
     right: 0.5rem;
-    gap: 0.25rem;
+    gap: 0.45rem;
   }
   .lr-like-prompt {
     font-size: 0.55rem;

@@ -81,10 +81,14 @@
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Like');
     btn.setAttribute('aria-pressed', 'false');
+    // Single path: camera body silhouette (with viewfinder bump) + lens circle.
+    // fill-rule: evenodd makes the lens render as a hole when the body is
+    // filled, so the same path reads as a clean camera in both states.
     btn.innerHTML =
       '<svg class="lr-like-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">' +
-        '<path class="lr-like-path" ' +
-          'd="M12 20.6s-7-4.2-9.3-8.4C.6 8.7 2.5 5 6 5c2 0 3.4 1 4 2 .6-1 2-2 4-2 3.5 0 5.4 3.7 3.3 7.2C19 16.4 12 20.6 12 20.6z" ' +
+        '<path class="lr-like-path" fill-rule="evenodd" ' +
+          'd="M5 8 H8 L9.5 5.5 H14.5 L16 8 H19 A2 2 0 0 1 21 10 V18 A2 2 0 0 1 19 20 H5 A2 2 0 0 1 3 18 V10 A2 2 0 0 1 5 8 Z ' +
+              'M8.5 14 A3.5 3.5 0 1 0 15.5 14 A3.5 3.5 0 1 0 8.5 14 Z" ' +
           'fill="none" stroke="currentColor" stroke-width="1.4" ' +
           'stroke-linejoin="round" stroke-linecap="round"/>' +
       '</svg>' +
