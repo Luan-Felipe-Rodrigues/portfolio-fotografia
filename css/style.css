@@ -230,7 +230,7 @@ nav.scrolled {
 }
 
 .showcase-item:nth-child(odd) {
-  padding-top: 4rem;
+  padding-top: 1rem;
 }
 
 .showcase-item a {
@@ -852,6 +852,7 @@ a.gallery-link:hover img {
 .about-stack-item:nth-child(2) {
   z-index: 2;
   justify-content: flex-end;
+  margin-top: 30vh;
 }
 
 .about-stack-item img {

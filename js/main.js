@@ -584,14 +584,13 @@ function initScrollVideo() {
 
   gsap.registerPlugin(ScrollTrigger);
 
-  function setup() {
+  function attachScrub() {
     const duration = video.duration;
     if (!duration || isNaN(duration)) return;
 
     const section = document.getElementById('about-section');
     if (!section) return;
 
-    // Video scrubs across the entire about section scroll
     gsap.to(video, {
       currentTime: duration,
       ease: 'none',
@@ -604,10 +603,11 @@ function initScrollVideo() {
     });
   }
 
-  if (video.readyState >= 1) {
-    setup();
+  // Wait until first frame is decoded so scrubbing doesn't briefly blank the video
+  if (video.readyState >= 3) {
+    attachScrub();
   } else {
-    video.addEventListener('loadedmetadata', setup);
+    video.addEventListener('canplay', attachScrub, { once: true });
   }
 }
 
