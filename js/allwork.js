@@ -1,5 +1,5 @@
 /* ==========================================================================
-   All Work — Draggable photo grid
+   All Work — Draggable photo grid (seamless infinite horizontal loop)
    ========================================================================== */
 
 (function() {
@@ -158,14 +158,28 @@
     grid.appendChild(item);
   });
 
-  // --- Drag to pan ---
+  // Clone grid horizontally for seamless infinite loop. The clone shows
+  // already-faded-in items so the join between original and clone is invisible.
+  var grid2 = grid.cloneNode(true);
+  grid2.querySelectorAll('.all-work-item').forEach(function(item) {
+    item.style.animation = 'none';
+    item.style.opacity = '1';
+    item.style.transform = 'none';
+  });
+  container.appendChild(grid2);
+  container.style.display = 'flex';
+  container.style.flexDirection = 'row';
+
+  // --- Drag / drift state ---
   var isDragging = false;
+  var hasInteracted = false;
   var startX = 0, startY = 0;
   var translateX = 0, translateY = 0;
   var currentX = 0, currentY = 0;
   var hasMoved = false;
 
-  // Center the grid initially
+  // Center the grid (single grid in viewport), then normalize X into the
+  // wrap-safe range (-gridW, 0].
   function centerGrid() {
     var gridW = grid.offsetWidth;
     var gridH = grid.offsetHeight;
@@ -173,160 +187,137 @@
     var viewH = workspace.offsetHeight;
     translateX = -(gridW - viewW) / 2;
     translateY = -(gridH - viewH) / 2;
+    while (translateX <= -gridW) translateX += gridW;
+    while (translateX > 0) translateX -= gridW;
     currentX = translateX;
     currentY = translateY;
     container.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px)';
   }
 
-  // Wait for a few images then center
-  var loadCount = 0;
-  var imgs = grid.querySelectorAll('img');
-  function checkCenter() {
-    loadCount++;
-    if (loadCount >= Math.min(8, imgs.length)) centerGrid();
-  }
-  imgs.forEach(function(img) {
-    if (img.complete) checkCenter();
-    else img.addEventListener('load', checkCenter);
-  });
-  // Fallback
-  setTimeout(centerGrid, 500);
+  centerGrid();
 
-  // Clamp bounds
-  function clamp() {
-    var gridW = grid.offsetWidth;
+  // Debounced resize so initial-paint reflows don't trigger multiple snap-backs
+  var resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(centerGrid, 150);
+  });
+
+  // Y is finite (clamped); X wraps infinitely.
+  function clampY() {
     var gridH = grid.offsetHeight;
-    var viewW = workspace.offsetWidth;
     var viewH = workspace.offsetHeight;
     var navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 72;
-
-    var minX = -(gridW - viewW + 16);
-    var maxX = 16;
     var minY = -(gridH - viewH + navH + 16);
     var maxY = navH;
-
-    translateX = Math.max(minX, Math.min(maxX, translateX));
     translateY = Math.max(minY, Math.min(maxY, translateY));
   }
 
-  // Auto-drift until user interacts
-  var autoDrift = true;
-  var driftSpeed = -0.3; // px per frame, negative = moves left
-
-  // Smooth animation
-  var animId;
-  function animate() {
-    if (autoDrift && !isDragging) {
-      translateX += driftSpeed;
-      clamp();
+  // Wrap translateX into (-gridW, 0]. Adjusts currentX (so the visual jump
+  // lands on identical content in the clone) and startX (so an in-progress
+  // drag continues smoothly across the seam).
+  function wrapX() {
+    var gridW = grid.offsetWidth;
+    while (translateX <= -gridW) {
+      translateX += gridW;
+      currentX += gridW;
+      startX -= gridW;
     }
-    currentX += (translateX - currentX) * 0.15;
-    currentY += (translateY - currentY) * 0.15;
-    container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
-    animId = requestAnimationFrame(animate);
+    while (translateX > 0) {
+      translateX -= gridW;
+      currentX -= gridW;
+      startX += gridW;
+    }
   }
-  animate();
 
-  function stopDrift() {
+  // Auto-drift: ambient leftward motion, only until the user takes over.
+  // Deferred 1.2s so it doesn't fight the initial center / entrance animations.
+  var autoDrift = false;
+  var driftSpeed = -0.3;
+  setTimeout(function() {
+    if (!hasInteracted) autoDrift = true;
+  }, 1200);
+
+  function markInteraction() {
+    hasInteracted = true;
     autoDrift = false;
+    if (hint && !hint.classList.contains('hidden')) hint.classList.add('hidden');
   }
 
-  // Mouse events
+  // Mouse
   workspace.addEventListener('mousedown', function(e) {
     isDragging = true;
     hasMoved = false;
-    stopDrift();
+    markInteraction();
     startX = e.clientX - translateX;
     startY = e.clientY - translateY;
   });
-
   window.addEventListener('mousemove', function(e) {
     if (!isDragging) return;
     hasMoved = true;
     translateX = e.clientX - startX;
     translateY = e.clientY - startY;
-    clamp();
-    // Hide hint on first drag
-    if (hint && !hint.classList.contains('hidden')) {
-      hint.classList.add('hidden');
-    }
+    clampY();
   });
-
   window.addEventListener('mouseup', function() {
     isDragging = false;
   });
 
-  // Touch events
+  // Touch
   workspace.addEventListener('touchstart', function(e) {
     isDragging = true;
     hasMoved = false;
-    stopDrift();
+    markInteraction();
     var touch = e.touches[0];
     startX = touch.clientX - translateX;
     startY = touch.clientY - translateY;
   }, { passive: true });
-
   workspace.addEventListener('touchmove', function(e) {
     if (!isDragging) return;
     hasMoved = true;
     var touch = e.touches[0];
     translateX = touch.clientX - startX;
     translateY = touch.clientY - startY;
-    clamp();
-    if (hint && !hint.classList.contains('hidden')) {
-      hint.classList.add('hidden');
-    }
+    clampY();
   }, { passive: true });
-
   workspace.addEventListener('touchend', function() {
     isDragging = false;
   }, { passive: true });
 
-  // Keyboard arrow navigation
-  var arrowSpeed = 80;
+  // Keyboard arrows: tuned to ~8 px/frame so holding a key feels like panning,
+  // not teleporting (was 80 — ~75 viewports/sec).
+  var arrowSpeed = 8;
   var keysDown = {};
-
   document.addEventListener('keydown', function(e) {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) === -1) return;
+    if (lightbox && lightbox.classList.contains('active')) return;
     e.preventDefault();
     keysDown[e.key] = true;
-    stopDrift();
-    if (hint && !hint.classList.contains('hidden')) {
-      hint.classList.add('hidden');
-    }
+    markInteraction();
   });
-
   document.addEventListener('keyup', function(e) {
     delete keysDown[e.key];
   });
 
-  // Integrate arrow keys into the animation loop
-  var originalAnimate = animate;
-  cancelAnimationFrame(animId);
-
-  function animateWithKeys() {
+  // Single animation loop
+  function animate() {
     if (keysDown['ArrowLeft'])  translateX += arrowSpeed;
     if (keysDown['ArrowRight']) translateX -= arrowSpeed;
-    if (keysDown['ArrowUp'])    translateY += arrowSpeed;
-    if (keysDown['ArrowDown'])  translateY -= arrowSpeed;
-
-    if (keysDown['ArrowLeft'] || keysDown['ArrowRight'] || keysDown['ArrowUp'] || keysDown['ArrowDown']) {
-      clamp();
-    }
+    if (keysDown['ArrowUp'])    { translateY += arrowSpeed; clampY(); }
+    if (keysDown['ArrowDown'])  { translateY -= arrowSpeed; clampY(); }
 
     if (autoDrift && !isDragging) {
       translateX += driftSpeed;
-      clamp();
     }
+
+    wrapX();
+
     currentX += (translateX - currentX) * 0.15;
     currentY += (translateY - currentY) * 0.15;
     container.style.transform = 'translate(' + currentX + 'px, ' + currentY + 'px)';
-    animId = requestAnimationFrame(animateWithKeys);
+    requestAnimationFrame(animate);
   }
-  animateWithKeys();
-
-  // Recenter on resize
-  window.addEventListener('resize', centerGrid);
+  animate();
 
   // --- Lightbox ---
   var lightbox = document.createElement('div');
@@ -366,8 +357,8 @@
     lbShow();
   }
 
-  // Click on photo (not drag)
-  grid.addEventListener('click', function(e) {
+  // Click on photo (not drag). Listens on container so clone clicks also work.
+  container.addEventListener('click', function(e) {
     if (hasMoved) return;
     var item = e.target.closest('.all-work-item');
     if (!item) return;
@@ -380,7 +371,6 @@
   lightbox.querySelector('.allwork-lb-next').addEventListener('click', function(e) { e.stopPropagation(); lbNav(1); });
   lightbox.addEventListener('click', function(e) { if (e.target === lightbox) lbClose(); });
 
-  // Keyboard
   document.addEventListener('keydown', function(e) {
     if (!lightbox.classList.contains('active')) return;
     if (e.key === 'Escape') lbClose();
