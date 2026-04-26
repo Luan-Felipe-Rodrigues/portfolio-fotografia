@@ -16,10 +16,10 @@
   const ENABLED = !!(SUPABASE_URL && SUPABASE_KEY);
 
   function authHeaders() {
-    return {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-    };
+    // sb_publishable_* keys are not JWTs, so the apikey header alone
+    // identifies the anon role. Sending Authorization: Bearer with a
+    // non-JWT value can trip PostgREST's JWT validation.
+    return { 'apikey': SUPABASE_KEY };
   }
 
   const LS_KEY = 'lr_liked_v1';
