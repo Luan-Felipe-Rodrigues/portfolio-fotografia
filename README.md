@@ -6,11 +6,12 @@ Minimalist photography portfolio. Pure HTML, CSS, and JavaScript. No frameworks.
 
 ## Features
 
-- **Draggable portfolio grid** — Explore all photos by dragging, arrow keys, or touch. Auto-drift on load
+- **Draggable portfolio grid** — Explore all photos by dragging, arrow keys, or touch. Seamless infinite horizontal loop (the grid is rendered twice side-by-side and `translateX` wraps invisibly)
 - **Lightbox viewer** — Click any photo for fullscreen with keyboard navigation (arrows, Esc) and swipe on mobile
+- **Anonymous likes** — Camera icon in the lightbox bottom-right (sketch outline → filled when liked). Click triggers a white flash + photo shake + heart pulse, like snapping a picture. Counts sync globally via Supabase, `localStorage` prevents re-liking on the same browser
 - **Masonry galleries** — CSS grid layout for series pages, adapts to any aspect ratio
-- **Scroll-driven video** — About page video scrubs with scroll position (desktop, GSAP ScrollTrigger)
-- **Multilingual** — Full content in Portuguese, English, and Spanish
+- **Scroll-driven video** — About page video scrubs with scroll position (desktop, GSAP ScrollTrigger). A "Scroll" hint sits over the video and fades on first interaction
+- **Multilingual** — Full content in Portuguese, English, and Spanish, including the like prompt ("Gostou?" / "Liked it?" / "¿Te gusta?")
 - **Mobile-optimized** — Responsive layout, touch-friendly navigation, poster fallback for video
 - **Lazy loading** — Images load on scroll with fade-in
 - **Location beacon** — Floating nav for multi-location series (Lugares, Eventos)
@@ -35,6 +36,7 @@ Minimalist photography portfolio. Pure HTML, CSS, and JavaScript. No frameworks.
 - Vanilla JavaScript (IntersectionObserver, touch events, drag-to-pan)
 - GSAP + ScrollTrigger (CDN, About page only)
 - Google Fonts (Inter)
+- **Supabase (Postgres + REST)** — backend for the likes feature. See [`supabase/README.md`](./supabase/README.md) for the schema-governance pattern (public vs private schemas, RLS-first, SECURITY DEFINER writes)
 
 ## Structure
 
@@ -51,8 +53,9 @@ Minimalist photography portfolio. Pure HTML, CSS, and JavaScript. No frameworks.
 ├── en/                     # English pages
 ├── es/                     # Spanish pages
 ├── css/style.css           # All styles
-├── js/main.js              # Core JS (nav, lightbox, GSAP, masonry)
-├── js/allwork.js           # Portfolio grid (drag, arrows, lightbox)
+├── js/main.js              # Core JS (nav, lightbox, GSAP, masonry, dynamic likes loader)
+├── js/allwork.js           # Portfolio grid (drag, arrows, infinite loop, lightbox)
+├── js/likes.js             # Likes module (Supabase REST, flash/shake animations)
 ├── images/
 │   ├── lugares/            # Location photos by city
 │   ├── prewedding/         # Pre-Wedding photos
@@ -60,6 +63,9 @@ Minimalist photography portfolio. Pure HTML, CSS, and JavaScript. No frameworks.
 │   ├── eventos/            # Event photos
 │   ├── about-video.mp4     # Scroll-driven video
 │   └── about-poster.jpg    # Mobile fallback
+├── supabase/
+│   ├── README.md           # Schema/governance conventions
+│   └── migrations/         # Numbered SQL migrations (apply in order)
 └── CNAME                   # Custom domain config
 ```
 

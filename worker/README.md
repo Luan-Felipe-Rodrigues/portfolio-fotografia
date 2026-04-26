@@ -1,4 +1,9 @@
-# Likes Worker
+# Likes Worker — DEPRECATED
+
+> **2026-04-26:** the likes feature is now backed by Supabase (see [`/supabase/`](../supabase)). This Cloudflare Worker is kept only for reference — it is not deployed and `js/likes.js` no longer points at it. Safe to delete if it gets in the way.
+
+---
+
 
 Cloudflare Worker that stores anonymous like counts for the photos in a KV namespace. The frontend (`js/likes.js`) talks to this Worker.
 
