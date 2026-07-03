@@ -115,6 +115,10 @@ When you add a new table (`photo_comments`, `contact_submissions`, …):
 |-------|---------------------------------------|------------------------------------------|
 | 0001  | `0001_foundation.sql`                 | `private` schema, `set_updated_at()`     |
 | 0002  | `0002_photo_likes.sql`                | `photo_likes` table, `increment_like()`  |
+| 0003  | `0003_collections.sql`                | `collections` table (with `parent_slug` for sub-locations), seed of top-level series + Lugares sub-locations |
+| 0004  | `0004_photos.sql`                     | `photos` table, read policies (anon = published only; authenticated = all) |
+| 0005  | `0005_admin_allowlist_and_writes.sql` | `private.admin_allowlist`, `current_user_is_admin()`, signup trigger, SECURITY DEFINER write functions for collections + photos |
+| 0006  | `0006_storage_photos.sql`             | Storage bucket `photos` (public read via CDN); write policies gated by `current_user_is_admin()` |
 
 ## Backup
 

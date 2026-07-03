@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Entrando - Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="admin-auth">
+    <h1>Entrando</h1>
+    <p id="status" class="status" role="status" aria-live="polite">Verificando link...</p>
+  </main>
+
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+
+    const status = document.getElementById('status');
+
+    async function finish() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error) {
+        status.textContent = `Erro: ${error.message}`;
+        status.classList.add('error');
+        return;
+      }
+
+      if (session) {
+        status.textContent = 'Autenticado. Redirecionando...';
+        setTimeout(() => window.location.replace('./'), 500);
+        return;
+      }
+
+      // Fallback: no session yet. Wait for state change once, then re-check.
+      const timeout = setTimeout(() => {
+        status.textContent = 'Não foi possível entrar. Volte ao login e peça um novo link.';
+        status.classList.add('error');
+      }, 5000);
+
+      supabase.auth.onAuthStateChange((_event, newSession) => {
+        if (newSession) {
+          clearTimeout(timeout);
+          status.textContent = 'Autenticado. Redirecionando...';
+          setTimeout(() => window.location.replace('./'), 500);
+        }
+      });
+    }
+
+    // PKCE flow: exchange the `code` in the URL for a session.
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        status.textContent = `Erro ao trocar código: ${error.message}`;
+        status.classList.add('error');
+      } else {
+        await finish();
+      }
+    } else {
+      // Implicit flow or already-set session.
+      await finish();
+    }
+  </script>
+</body>
+</html>

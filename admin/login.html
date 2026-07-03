@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin - Luan Rodrigues Fotografia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="admin-auth">
+    <h1>Admin</h1>
+    <p>Digite seu e-mail para receber um link de acesso.</p>
+    <form id="login-form" autocomplete="on">
+      <input type="email" name="email" required autocomplete="email" placeholder="voce@exemplo.com">
+      <button type="submit">Enviar link</button>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+
+    const form = document.getElementById('login-form');
+    const status = document.getElementById('status');
+    const button = form.querySelector('button');
+
+    // If already logged in, skip login screen.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      window.location.replace('./');
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.classList.remove('error');
+      const email = new FormData(form).get('email').trim();
+      button.disabled = true;
+      status.textContent = 'Enviando...';
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/admin/callback.html`,
+          shouldCreateUser: true
+        }
+      });
+
+      if (error) {
+        status.textContent = `Erro: ${error.message}`;
+        status.classList.add('error');
+        button.disabled = false;
+        return;
+      }
+
+      status.textContent = 'Link enviado. Confira seu e-mail.';
+      form.querySelector('input[type="email"]').disabled = true;
+    });
+  </script>
+</body>
+</html>
