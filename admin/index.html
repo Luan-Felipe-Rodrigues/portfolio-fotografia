@@ -14,19 +14,53 @@
   <main class="admin-shell">
     <div id="admin-shell-header"></div>
 
-    <section>
-      <h2 class="section-title">Painel</h2>
-      <p class="placeholder">
-        Dashboard em construção.<br>
-        Vá em <a href="./photos.html">Fotos</a> para ver o catálogo ou em <a href="./upload.html">Enviar</a> para adicionar novas.
-      </p>
+    <section class="dashboard-hero">
+      <div class="quick-actions">
+        <a href="./upload.html" class="button">Enviar fotos</a>
+        <a href="./photos.html" class="button ghost">Ver catálogo</a>
+      </div>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi-tile">
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-label">Fotos</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-value" id="kpi-published">—</div>
+        <div class="kpi-label">Publicadas</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-value" id="kpi-draft">—</div>
+        <div class="kpi-label">Rascunhos</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-value" id="kpi-archived">—</div>
+        <div class="kpi-label">Arquivadas</div>
+      </div>
+      <div class="kpi-tile">
+        <div class="kpi-value" id="kpi-likes">—</div>
+        <div class="kpi-label">Likes</div>
+      </div>
+    </section>
+
+    <section class="dashboard-split">
+      <div class="dashboard-panel">
+        <h2 class="section-title">Fotos por coleção</h2>
+        <div id="by-collection" class="collection-list">
+          <p class="placeholder">Carregando...</p>
+        </div>
+      </div>
+
+      <div class="dashboard-panel">
+        <h2 class="section-title">Últimas subidas</h2>
+        <div id="recent-uploads" class="recent-list">
+          <p class="placeholder">Carregando...</p>
+        </div>
+      </div>
     </section>
   </main>
 
-  <script type="module">
-    import { requireAdmin, renderShell } from './js/admin-shell.js';
-    const session = await requireAdmin();
-    if (session) renderShell('dashboard', session.user.email);
-  </script>
+  <script type="module" src="./js/dashboard.js"></script>
 </body>
 </html>

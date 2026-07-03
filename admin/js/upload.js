@@ -3,7 +3,7 @@ import { requireAdmin, renderShell, loadCollectionsForSelect } from './admin-she
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
-renderShell('upload', session.user.email);
+renderShell('photos', session.user.email);
 
 const targetEl = document.getElementById('collection-target');
 const isPublishedEl = document.getElementById('is-published');
