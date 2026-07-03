@@ -366,6 +366,35 @@ a { color: var(--fg); }
 .tag.published { border-color: #2a7a2a; color: #2a7a2a; }
 .tag.draft { border-color: #a37b1a; color: #a37b1a; }
 .tag.home { border-color: var(--fg); color: var(--fg); }
+.tag.archived { border-color: var(--muted); color: var(--muted); }
+
+/* ---- Segmented control ---- */
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+}
+
+.segmented button {
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.segmented button:last-child { border-right: none; }
+
+.segmented button:hover { color: var(--fg); }
+
+.segmented button.active {
+  background: var(--fg);
+  color: var(--bg);
+}
 
 .photo-dims { font-size: 12px; }
 

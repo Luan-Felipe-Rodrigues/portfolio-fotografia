@@ -7,20 +7,37 @@ renderShell('photos', session.user.email);
 
 const filterEl = document.getElementById('collection-filter');
 const listEl = document.getElementById('photos-list');
+const viewToggle = document.getElementById('view-toggle');
+
+let currentView = 'active';
 
 await loadCollectionsForSelect(filterEl, { includeEmpty: true, emptyLabel: 'Todas as coleções' });
 
-filterEl.addEventListener('change', () => loadPhotos(filterEl.value));
+filterEl.addEventListener('change', () => loadPhotos());
 
-async function loadPhotos(collectionId) {
+viewToggle.querySelectorAll('button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.view === currentView) return;
+    currentView = btn.dataset.view;
+    viewToggle.querySelectorAll('button').forEach((b) => {
+      const active = b === btn;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    loadPhotos();
+  });
+});
+
+async function loadPhotos() {
   listEl.innerHTML = '<p class="placeholder">Carregando fotos...</p>';
 
   let query = supabase
     .from('photos')
-    .select('id, storage_path, alt_pt, display_order, is_published, is_home_featured, taken_at, width, height, collection:collections(name_pt, slug)')
+    .select('id, storage_path, alt_pt, display_order, is_published, is_home_featured, is_archived, taken_at, width, height, collection:collections(name_pt, slug)')
+    .eq('is_archived', currentView === 'archived')
     .order('display_order');
 
-  if (collectionId) query = query.eq('collection_id', collectionId);
+  if (filterEl.value) query = query.eq('collection_id', filterEl.value);
 
   const { data, error } = await query;
 
@@ -30,11 +47,10 @@ async function loadPhotos(collectionId) {
   }
 
   if (!data.length) {
-    listEl.innerHTML = `
-      <p class="placeholder">
-        Nenhuma foto ${collectionId ? 'nesta coleção' : 'ainda'}.<br>
-        <a href="./upload.html">Enviar a primeira</a>
-      </p>`;
+    const emptyMsg = currentView === 'archived'
+      ? 'Nenhuma foto arquivada.'
+      : `Nenhuma foto ${filterEl.value ? 'nesta coleção' : 'ainda'}.<br><a href="./upload.html">Enviar a primeira</a>`;
+    listEl.innerHTML = `<p class="placeholder">${emptyMsg}</p>`;
     return;
   }
 
@@ -44,12 +60,20 @@ async function loadPhotos(collectionId) {
 
 function renderRow(p) {
   const thumb = `${STORAGE_RENDER}/${p.storage_path}?width=200&quality=70`;
+  const isArchived = currentView === 'archived';
+
   const badges = [
     p.collection?.name_pt ? `<span class="tag">${escapeHtml(p.collection.name_pt)}</span>` : '',
     p.is_home_featured ? '<span class="tag home">home</span>' : '',
-    p.is_published ? '<span class="tag published">publicada</span>' : '<span class="tag draft">rascunho</span>',
+    isArchived
+      ? '<span class="tag archived">arquivada</span>'
+      : (p.is_published ? '<span class="tag published">publicada</span>' : '<span class="tag draft">rascunho</span>'),
     p.taken_at ? `<span class="tag muted">${p.taken_at}</span>` : ''
   ].filter(Boolean).join(' ');
+
+  const archiveBtn = isArchived
+    ? '<button class="button ghost" data-action="restore">Restaurar</button>'
+    : '<button class="button ghost" data-action="archive">Arquivar</button>';
 
   return `
     <div class="photo-row" data-id="${p.id}">
@@ -65,6 +89,7 @@ function renderRow(p) {
           <input type="number" value="${p.display_order}" data-field="order" step="10">
         </label>
         <a href="./edit.html?id=${p.id}" class="button ghost">Editar</a>
+        ${archiveBtn}
         <button class="button danger" data-action="delete">Excluir</button>
       </div>
     </div>
@@ -92,6 +117,19 @@ function wireRow(p) {
     if (error) alert('Erro ao salvar ordem: ' + error.message);
   });
 
+  const archiveBtn = row.querySelector('[data-action="archive"], [data-action="restore"]');
+  if (archiveBtn) {
+    archiveBtn.addEventListener('click', async () => {
+      const archiving = archiveBtn.dataset.action === 'archive';
+      const { error } = await supabase.rpc('set_photo_archived', { p_id: p.id, p_archived: archiving });
+      if (error) {
+        alert('Erro: ' + error.message);
+        return;
+      }
+      row.remove();
+    });
+  }
+
   row.querySelector('[data-action="delete"]').addEventListener('click', async () => {
     if (!confirm('Excluir esta foto? Não dá pra desfazer.')) return;
     const { data: path, error } = await supabase.rpc('delete_photo', { p_id: p.id });
@@ -111,4 +149,4 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-await loadPhotos(null);
+await loadPhotos();

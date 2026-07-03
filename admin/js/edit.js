@@ -90,6 +90,7 @@ function render(p, cols) {
         <div class="form-actions">
           <button type="submit" class="button">Salvar</button>
           <a href="./photos.html" class="button ghost">Voltar</a>
+          <button type="button" class="button ghost" id="archive-btn">${p.is_archived ? 'Restaurar' : 'Arquivar'}</button>
           <button type="button" class="button danger" id="delete-btn">Excluir</button>
         </div>
         <p id="save-status" class="status" role="status" aria-live="polite"></p>
@@ -124,6 +125,18 @@ function render(p, cols) {
       return;
     }
     status.textContent = 'Salvo.';
+  });
+
+  document.getElementById('archive-btn').addEventListener('click', async () => {
+    const targetState = !p.is_archived;
+    const label = targetState ? 'arquivar' : 'restaurar';
+    if (!confirm(`Confirma ${label} esta foto?`)) return;
+    const { error } = await supabase.rpc('set_photo_archived', { p_id: photoId, p_archived: targetState });
+    if (error) {
+      alert('Erro: ' + error.message);
+      return;
+    }
+    window.location.replace('./photos.html');
   });
 
   document.getElementById('delete-btn').addEventListener('click', async () => {
