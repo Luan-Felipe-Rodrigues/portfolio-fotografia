@@ -22,6 +22,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v4
+
+      # Cache-bust local JS and CSS references so the CDN never serves a
+      # stale bundle right after a deploy. Only touches the artifact tree;
+      # no changes are committed back to the repo.
+      - name: Append ?v=<sha> to local assets
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "Busting assets with SHA=$SHA"
+
+          # Bust <script src="..."> and <link href="..."> for local .js/.css
+          # references inside HTML pages. Skips already-versioned refs and CDN URLs.
+          find . -type f -name "*.html" \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" \
+            -exec sed -i -E \
+              -e "s#(src=\"|href=\")((\\.\\./|\\./)?(js|css|admin/js|admin)/[a-zA-Z0-9._/-]+\\.(js|css))(\")#\\1\\2?v=$SHA\\6#g" \
+              {} \;
+
+          # Bust dynamic <script>.src = 'js/foo.js' style references in JS files.
+          # main.js loads likes.js and analytics.js this way.
+          find . -type f -name "*.js" \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" \
+            -exec sed -i -E \
+              -e "s#(['\"])((\\.\\./|\\./)?(js|css|admin/js|admin)/[a-zA-Z0-9._/-]+\\.(js|css))(['\"])#\\1\\2?v=$SHA\\6#g" \
+              {} \;
+
+          echo "Sample of busted refs (expected: 1-3 lines with ?v=$SHA):"
+          grep -h "v=$SHA" index.html js/main.js 2>/dev/null | head -3 || echo "(none — check sed pattern)"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

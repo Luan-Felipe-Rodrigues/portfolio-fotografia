@@ -81,8 +81,8 @@
     // Nova York
     'images/lugares/nova-york/IMG_4480.jpg',
     'images/lugares/nova-york/IMG_4481.jpg',
-    'images/lugares/nova-york/IMG_5860.jpg.jpg',
-    'images/lugares/nova-york/IMG_5861.jpg.jpg',
+    'images/lugares/nova-york/IMG_5860.jpg',
+    'images/lugares/nova-york/IMG_5861.jpg',
     // Mexico
     'images/lugares/mexico/IMG_5863.jpeg',
     'images/lugares/mexico/IMG_5864.jpeg',
@@ -92,8 +92,8 @@
     'images/lugares/mexico/IMG_5871.jpeg',
     'images/lugares/mexico/IMG_5874.jpeg',
     // Rio de Janeiro
-    'images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpeg.jpg',
-    'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg.jpg',
+    'images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpg',
+    'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg',
     // Pre-Wedding
     'images/prewedding/IMG_4449.jpg',
     'images/prewedding/IMG_4944.jpg',
@@ -149,9 +149,9 @@
     'images/autoral/marco-2026/IMG_7248.jpg',
     'images/autoral/marco-2026/IMG_7255.jpg',
     // Autoral - 2024-2025
-    'images/autoral/2024-2025/IMG_3192.jpeg.jpg',
-    'images/autoral/2024-2025/IMG_4400.jpeg.jpg',
-    'images/autoral/2024-2025/IMG_4518.HEIC.jpg',
+    'images/autoral/2024-2025/IMG_3192.jpg',
+    'images/autoral/2024-2025/IMG_4400.jpg',
+    'images/autoral/2024-2025/IMG_4518.jpg',
     'images/autoral/2024-2025/IMG_2850.jpg',
     'images/autoral/2024-2025/autoral_01.jpg',
     'images/autoral/2024-2025/autoral_02.jpg',

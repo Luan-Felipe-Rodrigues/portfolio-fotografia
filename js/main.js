@@ -14,6 +14,18 @@
   document.head.appendChild(s);
 })();
 
+// Load analytics placeholder on every page. Sprint 2 turns the console.debug
+// calls into real beacons; contract stays stable so callers don't change.
+(function loadAnalytics() {
+  if (window.LR_ANALYTICS || document.getElementById('lr-analytics-loader')) return;
+  const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
+  const s = document.createElement('script');
+  s.id = 'lr-analytics-loader';
+  s.src = (isSubdir ? '../' : '') + 'js/analytics.js';
+  s.async = false;
+  document.head.appendChild(s);
+})();
+
 function whenLikesReady(cb) {
   if (window.LR_LIKES) cb();
   else document.addEventListener('lr:likes-ready', cb, { once: true });
@@ -45,9 +57,9 @@ function initHomeGallery() {
   const prefix = isSubdir ? '../' : '';
   const lang = document.documentElement.lang;
 
-  let lugaresLink = lang === 'en' ? 'series-places.html' : 'series-lugares.html';
+  let lugaresLink = lang === 'en' ? 'series-lugares.html' : 'series-lugares.html';
   let preweddingLink = 'series-prewedding.html';
-  let autoralLink = lang === 'en' ? 'series-personal.html' : 'series-autoral.html';
+  let autoralLink = lang === 'en' ? 'series-autoral.html' : 'series-autoral.html';
 
   const collections = [
     { link: lugaresLink, photos: ['images/lugares/cinque-terre/IMG_5895.jpeg', 'images/lugares/cinque-terre/IMG_5896.jpeg', 'images/lugares/cinque-terre/IMG_5897.jpeg'] },
@@ -56,8 +68,8 @@ function initHomeGallery() {
     { link: lugaresLink, photos: ['images/lugares/santos/IMG_2948.jpg', 'images/lugares/santos/IMG_2965.jpg', 'images/lugares/santos/IMG_3179.jpg'] },
     { link: lugaresLink, photos: ['images/lugares/serra-negra/IMG_7608.jpg', 'images/lugares/serra-negra/IMG_7657.jpg', 'images/lugares/serra-negra/IMG_7682.jpg', 'images/lugares/serra-negra/IMG_7703.jpg'] },
     { link: lugaresLink, photos: ['images/lugares/nova-york/IMG_4480.jpg', 'images/lugares/nova-york/IMG_4481.jpg'] },
-    { link: lugaresLink, photos: ['images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpeg.jpg', 'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg.jpg'] },
-    { link: autoralLink, photos: ['images/autoral/maio-2026/IMG_6345.jpg', 'images/autoral/maio-2026/IMG_7385.jpg', 'images/autoral/maio-2026/IMG_7399.jpg', 'images/autoral/maio-2026/IMG_7406.jpg', 'images/autoral/maio-2026/IMG_7417.jpg', 'images/autoral/maio-2026/IMG_7452.jpg', 'images/autoral/maio-2026/IMG_7460.jpg', 'images/autoral/maio-2026/IMG_7479.jpg', 'images/autoral/maio-2026/IMG_7501.jpg', 'images/autoral/maio-2026/IMG_7546.jpg', 'images/autoral/maio-2026/IMG_7555.jpg', 'images/autoral/maio-2026/IMG_7561.jpg', 'images/autoral/maio-2026/IMG_7593.jpg', 'images/autoral/maio-2026/IMG_7597.jpg', 'images/autoral/maio-2026/IMG_7598.jpg', 'images/autoral/maio-2026/IMG_7600.jpg', 'images/autoral/maio-2026/IMG_7601.jpg', 'images/autoral/maio-2026/IMG_7706.jpg', 'images/autoral/maio-2026/IMG_7707.jpg', 'images/autoral/maio-2026/IMG_7713.jpg', 'images/autoral/maio-2026/IMG_7714.jpg', 'images/autoral/maio-2026/IMG_7716.jpg', 'images/autoral/abril-2026/IMG_7287.jpg', 'images/autoral/abril-2026/IMG_7289.jpg', 'images/autoral/abril-2026/IMG_7291.jpg', 'images/autoral/abril-2026/IMG_7294.jpg', 'images/autoral/abril-2026/IMG_7339.jpg', 'images/autoral/abril-2026/IMG_7347.jpg', 'images/autoral/abril-2026/IMG_7370.jpg', 'images/autoral/abril-2026/IMG_7374.jpg', 'images/autoral/marco-2026/IMG_7208.jpg', 'images/autoral/marco-2026/IMG_7213.jpg', 'images/autoral/marco-2026/IMG_7229.jpg', 'images/autoral/marco-2026/IMG_7234.jpg', 'images/autoral/marco-2026/IMG_7248.jpg', 'images/autoral/marco-2026/IMG_7255.jpg', 'images/autoral/2024-2025/IMG_3192.jpeg.jpg', 'images/autoral/2024-2025/IMG_4400.jpeg.jpg', 'images/autoral/2024-2025/IMG_4518.HEIC.jpg', 'images/autoral/2024-2025/IMG_2850.jpg', 'images/autoral/2024-2025/autoral_01.jpg', 'images/autoral/2024-2025/autoral_02.jpg', 'images/autoral/2024-2025/autoral_03.jpg', 'images/autoral/2024-2025/autoral_04.jpg', 'images/autoral/2024-2025/autoral_05.jpg', 'images/autoral/2024-2025/autoral_06.jpg', 'images/autoral/2024-2025/autoral_07.jpg', 'images/autoral/2024-2025/autoral_08.jpg', 'images/autoral/2024-2025/autoral_09.jpg', 'images/autoral/2024-2025/autoral_10.jpg', 'images/autoral/2024-2025/autoral_11.jpg', 'images/autoral/2024-2025/autoral_12.jpg', 'images/autoral/2024-2025/autoral_13.jpg', 'images/autoral/2024-2025/autoral_14.jpg', 'images/autoral/2024-2025/autoral_15.jpg', 'images/autoral/2024-2025/autoral_16.jpg', 'images/autoral/2024-2025/autoral_17.jpg', 'images/autoral/2024-2025/autoral_18.jpg', 'images/autoral/2024-2025/autoral_19.jpg', 'images/autoral/2024-2025/autoral_20.jpg'] },
+    { link: lugaresLink, photos: ['images/lugares/rio-de-janeiro/IMG-20221112-WA0001.jpg', 'images/lugares/rio-de-janeiro/IMG-20221112-WA0003.jpg'] },
+    { link: autoralLink, photos: ['images/autoral/maio-2026/IMG_6345.jpg', 'images/autoral/maio-2026/IMG_7385.jpg', 'images/autoral/maio-2026/IMG_7399.jpg', 'images/autoral/maio-2026/IMG_7406.jpg', 'images/autoral/maio-2026/IMG_7417.jpg', 'images/autoral/maio-2026/IMG_7452.jpg', 'images/autoral/maio-2026/IMG_7460.jpg', 'images/autoral/maio-2026/IMG_7479.jpg', 'images/autoral/maio-2026/IMG_7501.jpg', 'images/autoral/maio-2026/IMG_7546.jpg', 'images/autoral/maio-2026/IMG_7555.jpg', 'images/autoral/maio-2026/IMG_7561.jpg', 'images/autoral/maio-2026/IMG_7593.jpg', 'images/autoral/maio-2026/IMG_7597.jpg', 'images/autoral/maio-2026/IMG_7598.jpg', 'images/autoral/maio-2026/IMG_7600.jpg', 'images/autoral/maio-2026/IMG_7601.jpg', 'images/autoral/maio-2026/IMG_7706.jpg', 'images/autoral/maio-2026/IMG_7707.jpg', 'images/autoral/maio-2026/IMG_7713.jpg', 'images/autoral/maio-2026/IMG_7714.jpg', 'images/autoral/maio-2026/IMG_7716.jpg', 'images/autoral/abril-2026/IMG_7287.jpg', 'images/autoral/abril-2026/IMG_7289.jpg', 'images/autoral/abril-2026/IMG_7291.jpg', 'images/autoral/abril-2026/IMG_7294.jpg', 'images/autoral/abril-2026/IMG_7339.jpg', 'images/autoral/abril-2026/IMG_7347.jpg', 'images/autoral/abril-2026/IMG_7370.jpg', 'images/autoral/abril-2026/IMG_7374.jpg', 'images/autoral/marco-2026/IMG_7208.jpg', 'images/autoral/marco-2026/IMG_7213.jpg', 'images/autoral/marco-2026/IMG_7229.jpg', 'images/autoral/marco-2026/IMG_7234.jpg', 'images/autoral/marco-2026/IMG_7248.jpg', 'images/autoral/marco-2026/IMG_7255.jpg', 'images/autoral/2024-2025/IMG_3192.jpg', 'images/autoral/2024-2025/IMG_4400.jpg', 'images/autoral/2024-2025/IMG_4518.jpg', 'images/autoral/2024-2025/IMG_2850.jpg', 'images/autoral/2024-2025/autoral_01.jpg', 'images/autoral/2024-2025/autoral_02.jpg', 'images/autoral/2024-2025/autoral_03.jpg', 'images/autoral/2024-2025/autoral_04.jpg', 'images/autoral/2024-2025/autoral_05.jpg', 'images/autoral/2024-2025/autoral_06.jpg', 'images/autoral/2024-2025/autoral_07.jpg', 'images/autoral/2024-2025/autoral_08.jpg', 'images/autoral/2024-2025/autoral_09.jpg', 'images/autoral/2024-2025/autoral_10.jpg', 'images/autoral/2024-2025/autoral_11.jpg', 'images/autoral/2024-2025/autoral_12.jpg', 'images/autoral/2024-2025/autoral_13.jpg', 'images/autoral/2024-2025/autoral_14.jpg', 'images/autoral/2024-2025/autoral_15.jpg', 'images/autoral/2024-2025/autoral_16.jpg', 'images/autoral/2024-2025/autoral_17.jpg', 'images/autoral/2024-2025/autoral_18.jpg', 'images/autoral/2024-2025/autoral_19.jpg', 'images/autoral/2024-2025/autoral_20.jpg'] },
     { link: preweddingLink, photos: ['images/prewedding/IMG_5147.jpg', 'images/prewedding/IMG_5298.jpg', 'images/prewedding/IMG_6052.jpg', 'images/prewedding/IMG_6192.jpg', 'images/prewedding/IMG_6193.jpg', 'images/prewedding/IMG_7191.jpg'] },
   ];
 
