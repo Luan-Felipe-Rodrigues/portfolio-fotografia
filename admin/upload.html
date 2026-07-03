@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Enviar fotos - Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <div id="admin-shell-header"></div>
+
+    <section class="upload-page">
+      <div class="page-toolbar wrap">
+        <label class="field">
+          Coleção destino
+          <select id="collection-target"></select>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="is-published" checked>
+          Publicar imediatamente
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="is-home-featured">
+          Marcar como home featured
+        </label>
+      </div>
+
+      <label class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp" hidden>
+        <p class="drop-title">Arraste fotos aqui</p>
+        <p class="hint">ou clique para escolher. JPEG, PNG ou WebP. Múltiplas suportadas.</p>
+      </label>
+
+      <div id="uploads-list" class="uploads-list"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/upload.js"></script>
+</body>
+</html>

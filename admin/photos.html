@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Admin - Luan Rodrigues Fotografia</title>
+  <title>Fotos - Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -14,19 +14,21 @@
   <main class="admin-shell">
     <div id="admin-shell-header"></div>
 
-    <section>
-      <h2 class="section-title">Painel</h2>
-      <p class="placeholder">
-        Dashboard em construção.<br>
-        Vá em <a href="./photos.html">Fotos</a> para ver o catálogo ou em <a href="./upload.html">Enviar</a> para adicionar novas.
-      </p>
+    <section class="photos-page">
+      <div class="page-toolbar">
+        <label class="field">
+          Coleção
+          <select id="collection-filter"></select>
+        </label>
+        <a href="./upload.html" class="button">Enviar fotos</a>
+      </div>
+
+      <div id="photos-list" class="photos-list">
+        <p class="placeholder">Carregando...</p>
+      </div>
     </section>
   </main>
 
-  <script type="module">
-    import { requireAdmin, renderShell } from './js/admin-shell.js';
-    const session = await requireAdmin();
-    if (session) renderShell('dashboard', session.user.email);
-  </script>
+  <script type="module" src="./js/photos-list.js"></script>
 </body>
 </html>
