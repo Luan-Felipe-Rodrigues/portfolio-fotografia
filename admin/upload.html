@@ -30,11 +30,11 @@
         </label>
       </div>
 
-      <label class="drop-zone" id="drop-zone">
-        <input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp" hidden>
+      <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Área para arrastar ou escolher fotos">
         <p class="drop-title">Arraste fotos aqui</p>
         <p class="hint">ou clique para escolher. JPEG, PNG ou WebP. Múltiplas suportadas.</p>
-      </label>
+      </div>
+      <input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp" hidden>
 
       <div id="uploads-list" class="uploads-list"></div>
     </section>

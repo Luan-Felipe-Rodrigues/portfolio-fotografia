@@ -15,6 +15,12 @@ const uploadsList = document.getElementById('uploads-list');
 await loadCollectionsForSelect(targetEl, { includeEmpty: false });
 
 dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
+});
 fileInput.addEventListener('change', () => handleFiles([...fileInput.files]));
 
 dropZone.addEventListener('dragover', (e) => {
