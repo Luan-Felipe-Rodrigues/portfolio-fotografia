@@ -1,0 +1,19 @@
+{
+  "name": "portfolio-migration-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "One-off scripts for the portfolio site. Not part of the Pages deploy.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "migrate:dry": "node migrate-photos.js --dry-run",
+    "migrate": "node migrate-photos.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "exifr": "^7.1.3",
+    "image-size": "^1.1.1"
+  }
+}
