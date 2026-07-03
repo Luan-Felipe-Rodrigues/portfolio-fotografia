@@ -63,7 +63,7 @@ function initHomeGallery() {
 
   const collections = [
     { link: lugaresLink, photos: ['images/lugares/cinque-terre/IMG_5895.jpeg', 'images/lugares/cinque-terre/IMG_5896.jpeg', 'images/lugares/cinque-terre/IMG_5897.jpeg'] },
-    { link: lugaresLink, photos: ['images/lugares/italia/IMG_5881.jpeg', 'images/lugares/italia/IMG_5883.jpeg', 'images/lugares/italia/IMG_5886.jpeg'] },
+    { link: lugaresLink, photos: ['images/lugares/toscana/IMG_5881.jpeg', 'images/lugares/toscana/IMG_5883.jpeg', 'images/lugares/toscana/IMG_5886.jpeg'] },
     { link: lugaresLink, photos: ['images/lugares/roma/IMG_5889.jpeg', 'images/lugares/roma/IMG_5891.jpeg', 'images/lugares/roma/IMG_5893.jpeg'] },
     { link: lugaresLink, photos: ['images/lugares/santos/IMG_2948.jpg', 'images/lugares/santos/IMG_2965.jpg', 'images/lugares/santos/IMG_3179.jpg'] },
     { link: lugaresLink, photos: ['images/lugares/serra-negra/IMG_7608.jpg', 'images/lugares/serra-negra/IMG_7657.jpg', 'images/lugares/serra-negra/IMG_7682.jpg', 'images/lugares/serra-negra/IMG_7703.jpg'] },

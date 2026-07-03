@@ -8,8 +8,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "migrate:dry": "node migrate-photos.js --dry-run",
-    "migrate": "node migrate-photos.js"
+    "migrate:dry": "node --env-file=.env migrate-photos.js --dry-run",
+    "migrate": "node --env-file=.env migrate-photos.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
