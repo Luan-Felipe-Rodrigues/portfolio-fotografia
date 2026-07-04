@@ -63,6 +63,7 @@ function whenLikesReady(cb) {
 document.addEventListener('DOMContentLoaded', () => {
   initHomeGallery();
   initSeriesDynamic();
+  initSeriesIndexDynamic();
   initNav();
   initLocationNav();
   initMasonry();
@@ -151,6 +152,45 @@ function initHomeGallery() {
 
   // Re-init scroll reveal for new items
   initScrollReveal();
+}
+
+/* --- Series index cards (dynamic) --- */
+function initSeriesIndexDynamic() {
+  if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
+  const cards = document.querySelectorAll('.series-card');
+  if (!cards.length) return;
+
+  const SLUG_BY_HREF = {
+    'series-lugares.html': 'lugares',
+    'series-autoral.html': 'autoral',
+    'series-prewedding.html': 'prewedding',
+    'series-eventos.html': 'eventos'
+  };
+
+  whenDynamicReady(async () => {
+    for (const card of cards) {
+      const href = (card.getAttribute('href') || '').split('/').pop();
+      const parentSlug = SLUG_BY_HREF[href];
+      if (!parentSlug) continue;
+      try {
+        const sb = window.LR_SUPABASE;
+        // Pick a home_featured photo of any leaf collection under this parent.
+        const { data: subs } = await sb.from('collections').select('id, slug').or(`slug.eq.${parentSlug},parent_slug.eq.${parentSlug}`);
+        const ids = (subs || []).map((s) => s.id);
+        if (!ids.length) continue;
+        let { data: photos } = await sb.from('photos').select('storage_path').eq('is_home_featured', true).eq('is_published', true).eq('is_archived', false).in('collection_id', ids).limit(1);
+        if (!photos || !photos.length) {
+          // fallback: any published photo
+          ({ data: photos } = await sb.from('photos').select('storage_path').eq('is_published', true).eq('is_archived', false).in('collection_id', ids).order('display_order').limit(1));
+        }
+        if (!photos || !photos.length) continue;
+        const img = card.querySelector('img');
+        if (img) img.src = window.LR_DYNAMIC.imageUrl(photos[0].storage_path, { width: 1200, quality: 82 });
+      } catch (e) {
+        console.error(`[series-index] falha em ${href}:`, e);
+      }
+    }
+  });
 }
 
 /* --- Series pages (dynamic, ?dynamic=1) --- */
