@@ -368,11 +368,14 @@ async function renderGroupedSeries(parentSlug) {
     return 0;
   });
 
-  // Sections live directly under <main>. Some HTML files nest them
-  // under <body>. Handle either.
+  // Sections live directly under <main> or <body>. Capture the anchor and
+  // the element that FOLLOWS the last section so new sections keep their
+  // place (before footer / lightbox / trailing scripts).
   const sections = document.querySelectorAll('.gallery-section');
   if (!sections.length) return;
-  const anchor = sections[sections.length - 1].parentElement;
+  const lastSection = sections[sections.length - 1];
+  const anchor = lastSection.parentElement;
+  const before = lastSection.nextSibling;
   sections.forEach((s) => s.remove());
 
   const locNav = document.querySelector('.location-nav-inner');
@@ -392,7 +395,7 @@ async function renderGroupedSeries(parentSlug) {
     grid.className = 'gallery-grid';
     for (const p of g.photos) grid.appendChild(galleryItemFor(p));
     section.appendChild(grid);
-    anchor.appendChild(section);
+    anchor.insertBefore(section, before);
 
     if (locNav) {
       const link = document.createElement('a');
@@ -416,7 +419,9 @@ async function renderEventosSeries() {
 
   const sections = document.querySelectorAll('.gallery-section');
   if (!sections.length) return;
-  const anchor = sections[sections.length - 1].parentElement;
+  const lastSection = sections[sections.length - 1];
+  const anchor = lastSection.parentElement;
+  const before = lastSection.nextSibling;
   sections.forEach((s) => s.remove());
 
   const locNav = document.querySelector('.location-nav-inner');
@@ -431,7 +436,7 @@ async function renderEventosSeries() {
     grid.className = 'gallery-grid';
     for (const p of byYear.get(year)) grid.appendChild(galleryItemFor(p));
     section.appendChild(grid);
-    anchor.appendChild(section);
+    anchor.insertBefore(section, before);
 
     if (locNav) {
       const link = document.createElement('a');
