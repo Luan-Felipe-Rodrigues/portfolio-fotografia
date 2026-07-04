@@ -427,6 +427,9 @@
     else delete lbImg.dataset.photoId;
     lbCounter.textContent = (lbIndex + 1) + ' / ' + lbPhotos.length;
     lightbox.dispatchEvent(new Event('lr:photo-changed'));
+    if (entry.photoId && window.LR_ANALYTICS) {
+      window.LR_ANALYTICS.trackPhotoView(entry.photoId, 'lightbox');
+    }
   }
 
   function lbOpen(src) {

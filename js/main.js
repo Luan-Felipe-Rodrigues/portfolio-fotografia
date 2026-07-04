@@ -869,6 +869,9 @@ function initLightbox() {
       else delete lightboxImg.dataset.photoId;
       counter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
       lightbox.dispatchEvent(new Event('lr:photo-changed'));
+      if (item.photoId && window.LR_ANALYTICS) {
+        window.LR_ANALYTICS.trackPhotoView(item.photoId, 'lightbox');
+      }
     }
   }
 

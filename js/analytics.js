@@ -1,22 +1,30 @@
 /*
- * Analytics placeholder for Sprint 2.
+ * Analytics beacons.
  *
- * Sprint 2 will replace the console.debug lines with beacons to a Supabase
- * Edge Function `ingest`, which writes to public.page_views / photo_views /
- * sessions. Contract stays stable so main.js and likes.js don't need edits
- * when the real implementation lands.
+ * Fires pageview at DOMContentLoaded and a duration beacon at pagehide /
+ * visibilitychange=hidden. Callers hit trackPhotoView(photoId) via
+ * window.LR_ANALYTICS when the lightbox opens a photo (wired from likes.js
+ * or the lightbox modules).
  *
- * No cookies, no fingerprint, no PII — only session_id in sessionStorage.
+ * Wire format is the contract that supabase/functions/ingest/index.ts
+ * accepts:
+ *   { type, session_id, path?, locale?, referrer?, photo_id?, source?,
+ *     duration_ms? }
+ *
+ * No cookies. Only a sessionStorage-scoped UUID that dies with the tab.
+ * Uses navigator.sendBeacon when available so the browser can flush the
+ * request during unload; falls back to fetch(keepalive) otherwise.
  */
 (function () {
   if (window.LR_ANALYTICS) return;
 
+  const INGEST_URL = 'https://junfgutjyicdrvpoyuzz.supabase.co/functions/v1/ingest';
   const SESSION_KEY = 'lr_session_v1';
 
   function getSessionId() {
     let id = sessionStorage.getItem(SESSION_KEY);
     if (!id) {
-      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2);
+      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now();
       sessionStorage.setItem(SESSION_KEY, id);
     }
     return id;
@@ -29,43 +37,62 @@
     return 'pt';
   }
 
+  function send(payload) {
+    try {
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      if (navigator.sendBeacon && navigator.sendBeacon(INGEST_URL, blob)) return true;
+    } catch { /* fall through */ }
+    try {
+      fetch(INGEST_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).catch(() => {});
+    } catch { /* silent */ }
+    return false;
+  }
+
   function trackPageview() {
-    const payload = {
+    send({
+      type: 'pageview',
       session_id: getSessionId(),
       path: window.location.pathname,
-      referrer: document.referrer || null,
       locale: inferLocale(),
-      timestamp: Date.now()
-    };
-    console.debug('[analytics] pageview', payload);
-    // Sprint 2: navigator.sendBeacon('<ingest-url>/pageview', JSON.stringify(payload));
+      referrer: document.referrer || null
+    });
   }
 
   function trackPhotoView(photoId, source) {
-    const payload = {
+    if (!photoId) return;
+    send({
+      type: 'photo_view',
       session_id: getSessionId(),
       photo_id: photoId,
-      source: source || 'lightbox',
-      timestamp: Date.now()
-    };
-    console.debug('[analytics] photo_view', payload);
-    // Sprint 2: navigator.sendBeacon('<ingest-url>/photo_view', JSON.stringify(payload));
+      source: source || 'lightbox'
+    });
   }
 
   const pageStart = Date.now();
+  let durationSent = false;
   function trackSessionEnd() {
-    const payload = {
+    if (durationSent) return;
+    durationSent = true;
+    send({
+      type: 'pageview',
       session_id: getSessionId(),
       path: window.location.pathname,
-      duration_ms: Date.now() - pageStart,
-      timestamp: Date.now()
-    };
-    console.debug('[analytics] session_end', payload);
-    // Sprint 2: navigator.sendBeacon('<ingest-url>/session_end', JSON.stringify(payload));
+      locale: inferLocale(),
+      duration_ms: Date.now() - pageStart
+    });
   }
 
-  // Auto-fire pageview and session_end
-  document.addEventListener('DOMContentLoaded', trackPageview);
+  // Auto-fire pageview on load and a duration-carrying beacon on unload.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', trackPageview);
+  } else {
+    trackPageview();
+  }
   window.addEventListener('pagehide', trackSessionEnd);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') trackSessionEnd();
