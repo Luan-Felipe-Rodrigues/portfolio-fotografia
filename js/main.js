@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHomeGallery();
   initSeriesDynamic();
   initSeriesIndexDynamic();
+  initAboutDecoration();
   initNav();
   initLocationNav();
   initMasonry();
@@ -152,6 +153,46 @@ function initHomeGallery() {
 
   // Re-init scroll reveal for new items
   initScrollReveal();
+}
+
+/* --- About page decoration photos (dynamic) --- */
+function initAboutDecoration() {
+  if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
+  const imgs = document.querySelectorAll('.about-stack-item img');
+  if (!imgs.length) return;
+
+  // Infer target collection from the existing static src.
+  function collectionFor(src) {
+    if (!src) return null;
+    const m = src.match(/lugares\/([^/]+)\//);
+    if (!m) return null;
+    const sub = m[1] === 'rio-de-janeiro' ? 'rio' : m[1];
+    return `lugares-${sub}`;
+  }
+
+  whenDynamicReady(async () => {
+    for (const img of imgs) {
+      const slug = collectionFor(img.getAttribute('src'));
+      if (!slug) continue;
+      try {
+        const sb = window.LR_SUPABASE;
+        const { data: col } = await sb.from('collections').select('id').eq('slug', slug).maybeSingle();
+        if (!col) continue;
+        const { data: photos } = await sb.from('photos')
+          .select('storage_path')
+          .eq('collection_id', col.id)
+          .eq('is_published', true)
+          .eq('is_archived', false)
+          .order('display_order')
+          .limit(1);
+        if (photos && photos.length) {
+          img.src = window.LR_DYNAMIC.imageUrl(photos[0].storage_path, { width: 1400, quality: 82 });
+        }
+      } catch (e) {
+        console.error(`[about-deco] ${slug}:`, e);
+      }
+    }
+  });
 }
 
 /* --- Series index cards (dynamic) --- */
