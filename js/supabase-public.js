@@ -8,7 +8,11 @@
  * event or check the global before using.
  */
 (function () {
-  if (window.LR_SUPABASE || document.getElementById('lr-supabase-loader')) return;
+  // Do NOT check for the loader script tag — this file *is* loaded by that
+  // very tag, so at first-execution time the tag already exists in the DOM.
+  // Checking it caused an early return and the SDK never imported (fixed
+  // 2026-07-04 after a failed switchover).
+  if (window.LR_SUPABASE) return;
 
   const SUPABASE_URL = 'https://junfgutjyicdrvpoyuzz.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_GY-aCPbwOTu_BXGGGNx5rQ_Rmc_Nddb';
