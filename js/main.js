@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSeriesDynamic();
   initSeriesIndexDynamic();
   initAboutDecoration();
+  initFooterNote();
   initNav();
   initLocationNav();
   initMasonry();
@@ -168,6 +169,27 @@ function initHomeGalleryStatic(top, bottom) {
 
   // Re-init scroll reveal for new items
   initScrollReveal();
+}
+
+/* --- Footer privacy note (LGPD-friendly reassurance) --- */
+function initFooterNote() {
+  const footers = document.querySelectorAll('footer');
+  if (!footers.length) return;
+  const locale = (window.LR_DYNAMIC && window.LR_DYNAMIC.locale) ? window.LR_DYNAMIC.locale() :
+    (window.location.pathname.startsWith('/en/') ? 'en' :
+     window.location.pathname.startsWith('/es/') ? 'es' : 'pt');
+  const NOTE = {
+    pt: 'Sem cookies, sem tracking pessoal — apenas contagem anônima de visitas.',
+    en: 'No cookies, no personal tracking — anonymous visit counts only.',
+    es: 'Sin cookies, sin tracking personal — solo conteo anónimo de visitas.'
+  };
+  footers.forEach((f) => {
+    if (f.querySelector('.footer-note')) return;
+    const p = document.createElement('p');
+    p.className = 'footer-note';
+    p.textContent = NOTE[locale] || NOTE.pt;
+    f.appendChild(p);
+  });
 }
 
 /* --- About page decoration photos (dynamic) --- */

@@ -43,6 +43,7 @@ export function renderShell(activeKey, email) {
       <nav class="admin-nav-links">
         <a href="./" data-key="dashboard">Dashboard</a>
         <a href="./photos.html" data-key="photos">Fotos</a>
+        <a href="./analytics.html" data-key="analytics">Análises</a>
       </nav>
       <div class="admin-nav-user">
         <span class="user-info">${email || ''}</span>

@@ -7,12 +7,63 @@ renderShell('dashboard', session.user.email);
 
 try {
   await load();
+  await loadTraffic();
 } catch (e) {
   console.error(e);
   document.querySelectorAll('.placeholder').forEach((el) => {
     el.textContent = 'Erro: ' + e.message;
     el.classList.add('error');
   });
+}
+
+async function loadTraffic() {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+  const [pvRes, sessRes, phvRes] = await Promise.all([
+    supabase.from('page_views').select('session_id, path, duration_ms, created_at').gte('created_at', thirtyDaysAgo),
+    supabase.from('sessions').select('session_id, is_bot, first_seen').gte('first_seen', thirtyDaysAgo),
+    supabase.from('photo_views').select('photo_id, created_at, photo:photos(id, storage_path, alt_pt, collection:collections(name_pt))').gte('created_at', thirtyDaysAgo)
+  ]);
+
+  if (pvRes.error) throw pvRes.error;
+  if (sessRes.error) throw sessRes.error;
+  if (phvRes.error) throw phvRes.error;
+
+  const humanSessions = new Set(sessRes.data.filter((s) => !s.is_bot).map((s) => s.session_id));
+  const pv = pvRes.data.filter((r) => humanSessions.has(r.session_id));
+
+  setKpi('tr-visits', pv.length);
+  setKpi('tr-sessions', new Set(pv.map((r) => r.session_id)).size);
+  const durations = pv.map((r) => r.duration_ms).filter((d) => d != null && d > 0);
+  const avgSec = durations.length ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length / 1000) : 0;
+  setKpi('tr-avg', avgSec > 0 ? `${avgSec}s` : '—');
+  setKpi('tr-photo-views', phvRes.data.length);
+
+  const counts = new Map();
+  const meta = new Map();
+  for (const row of phvRes.data) {
+    if (!row.photo_id || !row.photo) continue;
+    counts.set(row.photo_id, (counts.get(row.photo_id) || 0) + 1);
+    if (!meta.has(row.photo_id)) meta.set(row.photo_id, row.photo);
+  }
+  const top = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id, count]) => ({ id, count, photo: meta.get(id) }));
+
+  const topEl = document.getElementById('top-photos');
+  if (!top.length) {
+    topEl.innerHTML = '<p class="placeholder">Nenhuma visualização ainda. Aguarde um dia de tráfego.</p>';
+    return;
+  }
+  topEl.innerHTML = top.map((t) => `
+    <a href="./edit.html?id=${t.id}" class="recent-row">
+      <img src="${imgUrl(t.photo.storage_path, { width: 240, quality: 70 })}" alt="" loading="lazy">
+      <div class="recent-meta">
+        <div class="recent-alt">${escapeHtml(t.photo.alt_pt || 'sem alt-text')}</div>
+        <div class="recent-tag muted">${escapeHtml(t.photo.collection?.name_pt || '?')} · ${t.count} view${t.count > 1 ? 's' : ''}</div>
+      </div>
+    </a>
+  `).join('');
 }
 
 async function load() {

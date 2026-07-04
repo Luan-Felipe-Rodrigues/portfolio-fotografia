@@ -205,6 +205,41 @@ nav.scrolled {
   transform: rotate(-45deg) translate(4px, -4px);
 }
 
+/* --- Hero Mask (Apple-style text reveal) --- */
+.hero-mask {
+  height: 300vh;
+  position: relative;
+  background-color: var(--bg);
+}
+
+.hero-mask-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.hero-mask-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-mask-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .hero-mask {
+    display: none;
+  }
+}
+
 /* --- Showcase (Home) --- */
 .showcase {
   padding-top: var(--nav-height);
@@ -1435,6 +1470,12 @@ footer p {
   color: var(--text-lighter);
   margin: 0 auto;
   letter-spacing: 0.02em;
+}
+
+footer p.footer-note {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  opacity: 0.7;
 }
 
 /* --- Scroll reveal --- */

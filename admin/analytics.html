@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Análises - Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <div id="admin-shell-header"></div>
+
+    <section class="analytics-controls">
+      <div class="segmented" id="range-toggle" role="tablist">
+        <button type="button" data-range="7" role="tab">7d</button>
+        <button type="button" data-range="30" role="tab" class="active" aria-selected="true">30d</button>
+        <button type="button" data-range="90" role="tab">90d</button>
+      </div>
+    </section>
+
+    <section class="kpis kpis-4">
+      <div class="kpi-tile"><div class="kpi-value" id="k-visits">—</div><div class="kpi-label">Visitas</div></div>
+      <div class="kpi-tile"><div class="kpi-value" id="k-sessions">—</div><div class="kpi-label">Sessões únicas</div></div>
+      <div class="kpi-tile"><div class="kpi-value" id="k-avg">—</div><div class="kpi-label">Tempo médio</div></div>
+      <div class="kpi-tile"><div class="kpi-value" id="k-photo-views">—</div><div class="kpi-label">Fotos vistas</div></div>
+    </section>
+
+    <section class="dashboard-panel">
+      <h2 class="section-title">Visitas por dia</h2>
+      <div class="chart-wrap"><canvas id="chart-visits"></canvas></div>
+    </section>
+
+    <section class="dashboard-split">
+      <div class="dashboard-panel">
+        <h2 class="section-title">Países</h2>
+        <div class="chart-wrap"><canvas id="chart-countries"></canvas></div>
+      </div>
+      <div class="dashboard-panel">
+        <h2 class="section-title">Dispositivos</h2>
+        <div class="chart-wrap"><canvas id="chart-devices"></canvas></div>
+      </div>
+    </section>
+
+    <section class="dashboard-panel">
+      <h2 class="section-title">Top páginas</h2>
+      <div id="top-paths" class="collection-list">
+        <p class="placeholder">Carregando...</p>
+      </div>
+    </section>
+
+    <section class="dashboard-panel">
+      <h2 class="section-title">Top referrers</h2>
+      <div id="top-refs" class="collection-list">
+        <p class="placeholder">Carregando...</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script type="module" src="./js/analytics-page.js"></script>
+</body>
+</html>
