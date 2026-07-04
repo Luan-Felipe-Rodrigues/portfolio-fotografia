@@ -20,11 +20,12 @@
   if (window.LR_DYNAMIC) return;
 
   // ------ Config ------
-  // 2026-07-04: TEMPORARY ROLLBACK. Dynamic path failed to render in the
-  // production browser (no photos loaded). Reverted to static as default
-  // while the failure is diagnosed. Use `?dynamic=1` to opt into dynamic
-  // for testing. Once fixed, flip back to true.
-  const DEFAULT_DYNAMIC = false;
+  // 2026-07-04: S1.18 switchover REDO after commit a748e44 fixed the
+  // supabase-public.js early-return bug. Puppeteer validated all 8 pages
+  // render photos correctly with ?dynamic=1. Now default is dynamic for
+  // all visitors. `?dynamic=0` remains as escape hatch.
+  // images/* stays in the repo for now (S1.19 waits ≥48h per lesson).
+  const DEFAULT_DYNAMIC = true;
 
   // ------ Helpers ------
   function locale() {
