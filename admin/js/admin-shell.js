@@ -4,6 +4,26 @@ export const STORAGE_BASE = 'https://junfgutjyicdrvpoyuzz.supabase.co/storage/v1
 export const STORAGE_RENDER = `${STORAGE_BASE}/render/image/public/photos`;
 export const STORAGE_OBJECT = `${STORAGE_BASE}/object/public/photos`;
 
+/**
+ * Build a Supabase image-transform URL that always passes both width and
+ * height with resize=contain. Prevents the vertical-strip crop bug on
+ * portrait photos captured landscape and rotated via EXIF orientation.
+ *
+ * @param {string} storagePath  the row's storage_path
+ * @param {{width?: number, height?: number, quality?: number, resize?: 'contain'|'cover'|'fill'}} opts
+ */
+export function imgUrl(storagePath, opts = {}) {
+  if (!storagePath) return '';
+  const params = new URLSearchParams();
+  const w = opts.width;
+  const h = opts.height || w;
+  if (w) params.set('width', String(w));
+  if (h) params.set('height', String(h));
+  params.set('resize', opts.resize || 'contain');
+  if (opts.quality) params.set('quality', String(opts.quality));
+  return `${STORAGE_RENDER}/${storagePath}?${params.toString()}`;
+}
+
 export async function requireAdmin() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {

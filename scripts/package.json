@@ -11,7 +11,9 @@
     "migrate:dry": "node --env-file=.env migrate-photos.js --dry-run",
     "migrate": "node --env-file=.env migrate-photos.js",
     "reconcile-likes:dry": "node --env-file=.env reconcile-likes.js --dry-run",
-    "reconcile-likes": "node --env-file=.env reconcile-likes.js"
+    "reconcile-likes": "node --env-file=.env reconcile-likes.js",
+    "backfill-dimensions:dry": "node --env-file=.env backfill-dimensions.js --dry-run",
+    "backfill-dimensions": "node --env-file=.env backfill-dimensions.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

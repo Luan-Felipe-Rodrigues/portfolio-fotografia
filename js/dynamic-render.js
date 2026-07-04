@@ -43,7 +43,16 @@
     if (!storagePath) return '';
     const base = window.LR_STORAGE_RENDER;
     const params = new URLSearchParams();
-    if (opts?.width) params.set('width', String(opts.width));
+    const w = opts?.width;
+    const h = opts?.height || w; // square bounding box by default
+    if (w) params.set('width', String(w));
+    if (h) params.set('height', String(h));
+    // resize=contain fits the image inside the bounding box preserving
+    // aspect ratio. Portrait and landscape sources both work — the browser's
+    // container CSS decides the final crop. Without this, Supabase defaults
+    // to cover with no height set, which produces a vertical strip crop for
+    // photos that were captured landscape but rotated via EXIF orientation.
+    params.set('resize', opts?.resize || 'contain');
     if (opts?.quality) params.set('quality', String(opts.quality));
     const qs = params.toString();
     return `${base}/${storagePath}${qs ? '?' + qs : ''}`;

@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { requireAdmin, renderShell, STORAGE_RENDER } from './admin-shell.js';
+import { requireAdmin, renderShell, imgUrl } from './admin-shell.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -98,7 +98,7 @@ function renderRecent(recent) {
   }
   el.innerHTML = recent.map((p) => `
     <a href="./edit.html?id=${p.id}" class="recent-row">
-      <img src="${STORAGE_RENDER}/${p.storage_path}?width=120&quality=70" alt="" loading="lazy">
+      <img src="${imgUrl(p.storage_path, { width: 240, quality: 70 })}" alt="" loading="lazy">
       <div class="recent-meta">
         <div class="recent-alt">${escapeHtml(p.alt_pt || 'sem alt-text')}</div>
         <div class="recent-tag muted">${escapeHtml(p.collection?.name_pt || '?')} · ${formatDate(p.created_at)}${p.is_archived ? ' · arquivada' : ''}</div>

@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { requireAdmin, renderShell, loadCollectionsForSelect, STORAGE_RENDER } from './admin-shell.js';
+import { requireAdmin, renderShell, loadCollectionsForSelect, imgUrl } from './admin-shell.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -59,7 +59,7 @@ async function loadPhotos() {
 }
 
 function renderRow(p) {
-  const thumb = `${STORAGE_RENDER}/${p.storage_path}?width=200&quality=70`;
+  const thumb = imgUrl(p.storage_path, { width: 400, quality: 70 });
   const isArchived = currentView === 'archived';
 
   const badges = [

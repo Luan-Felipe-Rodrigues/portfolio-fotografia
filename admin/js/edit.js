@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { requireAdmin, renderShell, STORAGE_RENDER } from './admin-shell.js';
+import { requireAdmin, renderShell, imgUrl } from './admin-shell.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -32,7 +32,7 @@ try {
 }
 
 function render(p, cols) {
-  const preview = `${STORAGE_RENDER}/${p.storage_path}?width=600&quality=80`;
+  const preview = imgUrl(p.storage_path, { width: 1200, quality: 82 });
 
   contentEl.innerHTML = `
     <div class="edit-layout">
