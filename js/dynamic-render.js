@@ -20,9 +20,11 @@
   if (window.LR_DYNAMIC) return;
 
   // ------ Config ------
-  const DEFAULT_DYNAMIC = true; // S1.18 switchover 2026-07-04: site is now
-  // Supabase-native by default. `?dynamic=0` in the URL forces the static
-  // fallback while Sprint 1 remnants are still in the repo.
+  // 2026-07-04: TEMPORARY ROLLBACK. Dynamic path failed to render in the
+  // production browser (no photos loaded). Reverted to static as default
+  // while the failure is diagnosed. Use `?dynamic=1` to opt into dynamic
+  // for testing. Once fixed, flip back to true.
+  const DEFAULT_DYNAMIC = false;
 
   // ------ Helpers ------
   function locale() {
