@@ -325,8 +325,28 @@ async function renderFlatSeries(slug) {
 async function renderGroupedSeries(parentSlug) {
   const groups = await window.LR_DYNAMIC.fetchByParentSlug(parentSlug);
 
-  // Sort groups by most recent photo first. Sub-collection with the newest
-  // taken_at appears at the top of the page. Empty groups fall to the end.
+  // Sort groups by "most recent first". Two-step key:
+  // 1. If the sub-collection name encodes a date ("Maio 2026", "2024-2025"),
+  //    use that as the sort date. This respects the photographer's folder
+  //    labels even when EXIF taken_at is misleading (old photos reprocessed
+  //    in a "Abril 2026" folder still belong to that period label).
+  // 2. Otherwise use MAX(taken_at) across the group's photos.
+  const MONTHS_PT = { janeiro: '01', fevereiro: '02', 'março': '03', marco: '03', abril: '04', maio: '05', junho: '06', julho: '07', agosto: '08', setembro: '09', outubro: '10', novembro: '11', dezembro: '12' };
+
+  function nameSortKey(name) {
+    if (!name) return null;
+    const low = name.toLowerCase().trim();
+    const monthYear = low.match(/^([a-zãç]+)\s+(\d{4})$/i);
+    if (monthYear && MONTHS_PT[monthYear[1]]) {
+      return `${monthYear[2]}-${MONTHS_PT[monthYear[1]]}-31`;
+    }
+    const range = low.match(/^(\d{4})[-–](\d{4})$/);
+    if (range) return `${range[2]}-12-31`;
+    const singleYear = low.match(/^(\d{4})$/);
+    if (singleYear) return `${singleYear[1]}-12-31`;
+    return null;
+  }
+
   function maxTaken(group) {
     let max = null;
     for (const p of group.photos) {
@@ -334,12 +354,17 @@ async function renderGroupedSeries(parentSlug) {
     }
     return max;
   }
+
+  function sortKey(group) {
+    return nameSortKey(group.collection.name_pt) || maxTaken(group);
+  }
+
   groups.sort((a, b) => {
-    const ta = maxTaken(a);
-    const tb = maxTaken(b);
-    if (ta && tb) return tb.localeCompare(ta);
-    if (ta) return -1;
-    if (tb) return 1;
+    const ka = sortKey(a);
+    const kb = sortKey(b);
+    if (ka && kb) return kb.localeCompare(ka);
+    if (ka) return -1;
+    if (kb) return 1;
     return 0;
   });
 
