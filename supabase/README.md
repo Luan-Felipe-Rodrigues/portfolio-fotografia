@@ -120,6 +120,7 @@ When you add a new table (`photo_comments`, `contact_submissions`, …):
 | 0005  | `0005_admin_allowlist_and_writes.sql` | `private.admin_allowlist`, `current_user_is_admin()`, signup trigger, SECURITY DEFINER write functions for collections + photos |
 | 0006  | `0006_storage_photos.sql`             | Storage bucket `photos` (public read via CDN); write policies gated by `current_user_is_admin()` |
 | 0007  | `0007_photos_archive.sql`             | `photos.is_archived` column; tighter anon read policy; `set_photo_archived()` RPC |
+| 0008  | `0008_analytics.sql`                  | `sessions`, `page_views`, `photo_views` tables (own-your-data analytics). Writes only via Edge Function `ingest` with service role; reads only for authenticated admin |
 
 ## Backup
 

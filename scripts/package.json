@@ -13,11 +13,13 @@
     "reconcile-likes:dry": "node --env-file=.env reconcile-likes.js --dry-run",
     "reconcile-likes": "node --env-file=.env reconcile-likes.js",
     "backfill-dimensions:dry": "node --env-file=.env backfill-dimensions.js --dry-run",
-    "backfill-dimensions": "node --env-file=.env backfill-dimensions.js"
+    "backfill-dimensions": "node --env-file=.env backfill-dimensions.js",
+    "smoke-test": "node smoke-test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "exifr": "^7.1.3",
-    "image-size": "^1.1.1"
+    "image-size": "^1.1.1",
+    "puppeteer": "^21.11.0"
   }
 }
