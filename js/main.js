@@ -324,6 +324,25 @@ async function renderFlatSeries(slug) {
 
 async function renderGroupedSeries(parentSlug) {
   const groups = await window.LR_DYNAMIC.fetchByParentSlug(parentSlug);
+
+  // Sort groups by most recent photo first. Sub-collection with the newest
+  // taken_at appears at the top of the page. Empty groups fall to the end.
+  function maxTaken(group) {
+    let max = null;
+    for (const p of group.photos) {
+      if (p.taken_at && (!max || p.taken_at > max)) max = p.taken_at;
+    }
+    return max;
+  }
+  groups.sort((a, b) => {
+    const ta = maxTaken(a);
+    const tb = maxTaken(b);
+    if (ta && tb) return tb.localeCompare(ta);
+    if (ta) return -1;
+    if (tb) return 1;
+    return 0;
+  });
+
   // Sections live directly under <main>. Some HTML files nest them
   // under <body>. Handle either.
   const sections = document.querySelectorAll('.gallery-section');
