@@ -55,6 +55,14 @@ function whenDynamicReady(cb) {
   if (!seen.s) document.addEventListener('lr:supabase-ready', () => { seen.s = true; check(); }, { once: true });
 }
 
+// Runs cb once dynamic-render.js has loaded (LR_DYNAMIC defined). Does NOT
+// wait for the Supabase client. Useful when we only need to check the flag
+// (isEnabled) before deciding between dynamic and static paths.
+function whenDynamicLoaded(cb) {
+  if (window.LR_DYNAMIC) return cb();
+  document.addEventListener('lr:dynamic-ready', () => cb(), { once: true });
+}
+
 function whenLikesReady(cb) {
   if (window.LR_LIKES) cb();
   else document.addEventListener('lr:likes-ready', cb, { once: true });
@@ -85,12 +93,19 @@ function initHomeGallery() {
   const bottom = document.getElementById('showcase-bottom');
   if (!top || !bottom) return;
 
-  // Dynamic path: fetch home_featured photos from Supabase and render.
-  if (window.LR_DYNAMIC && window.LR_DYNAMIC.isEnabled()) {
-    initHomeGalleryDynamic(top, bottom);
-    return;
-  }
+  // Wait for dynamic-render.js to load, then decide. Without this wait, the
+  // check would fall through to the static path because dynamic-render.js is
+  // loaded asynchronously and DOMContentLoaded fires first.
+  whenDynamicLoaded(() => {
+    if (window.LR_DYNAMIC && window.LR_DYNAMIC.isEnabled()) {
+      initHomeGalleryDynamic(top, bottom);
+    } else {
+      initHomeGalleryStatic(top, bottom);
+    }
+  });
+}
 
+function initHomeGalleryStatic(top, bottom) {
   const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
   const prefix = isSubdir ? '../' : '';
   const lang = document.documentElement.lang;
@@ -157,9 +172,15 @@ function initHomeGallery() {
 
 /* --- About page decoration photos (dynamic) --- */
 function initAboutDecoration() {
-  if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
   const imgs = document.querySelectorAll('.about-stack-item img');
   if (!imgs.length) return;
+  whenDynamicLoaded(() => {
+    if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
+    runAboutDecoration(imgs);
+  });
+}
+
+function runAboutDecoration(imgs) {
 
   // Infer target collection from the existing static src.
   function collectionFor(src) {
@@ -197,9 +218,15 @@ function initAboutDecoration() {
 
 /* --- Series index cards (dynamic) --- */
 function initSeriesIndexDynamic() {
-  if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
   const cards = document.querySelectorAll('.series-card');
   if (!cards.length) return;
+  whenDynamicLoaded(() => {
+    if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
+    runSeriesIndexDynamic(cards);
+  });
+}
+
+function runSeriesIndexDynamic(cards) {
 
   const SLUG_BY_HREF = {
     'series-lugares.html': 'lugares',
@@ -236,8 +263,6 @@ function initSeriesIndexDynamic() {
 
 /* --- Series pages (dynamic, ?dynamic=1) --- */
 function initSeriesDynamic() {
-  if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
-
   const path = window.location.pathname;
   let type = null;
   if (path.includes('series-autoral')) type = 'autoral';
@@ -245,6 +270,14 @@ function initSeriesDynamic() {
   else if (path.includes('series-lugares')) type = 'lugares';
   else if (path.includes('series-eventos')) type = 'eventos';
   if (!type) return;
+
+  whenDynamicLoaded(() => {
+    if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
+    runSeriesDynamic(type);
+  });
+}
+
+function runSeriesDynamic(type) {
 
   whenDynamicReady(async () => {
     try {

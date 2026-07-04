@@ -188,6 +188,14 @@
   // Load photos either from Supabase (?dynamic=1) or the static array above.
   // Falls back to static on any error so the page never comes up blank.
   async function loadPhotoList() {
+    // Wait for dynamic-render.js to load before checking the flag; otherwise
+    // we'd fall through to the static fallback while the module is still
+    // loading async, and show broken image paths (images/ was removed in
+    // S1.19).
+    await new Promise((r) => {
+      if (window.LR_DYNAMIC) r();
+      else document.addEventListener('lr:dynamic-ready', r, { once: true });
+    });
     if (window.LR_DYNAMIC && window.LR_DYNAMIC.isEnabled()) {
       await new Promise((r) => {
         if (window.LR_SUPABASE) r();
