@@ -48,10 +48,28 @@ function setKpi(id, value) {
 }
 
 function renderByCollection(collections, photos) {
-  const rows = collections.map((c) => ({
-    ...c,
-    count: photos.filter((p) => p.collection_id === c.id && !p.is_archived).length
-  }));
+  // Direct count per collection (photos whose collection_id matches this row).
+  const directCount = new Map();
+  for (const c of collections) {
+    directCount.set(
+      c.slug,
+      photos.filter((p) => p.collection_id === c.id && !p.is_archived).length
+    );
+  }
+
+  // Effective count: top-level rows aggregate children by parent_slug so a
+  // parent whose photos live under sub-collections doesn't misleadingly show 0.
+  const rows = collections.map((c) => {
+    let count = directCount.get(c.slug) || 0;
+    if (!c.parent_slug) {
+      for (const child of collections) {
+        if (child.parent_slug === c.slug) {
+          count += directCount.get(child.slug) || 0;
+        }
+      }
+    }
+    return { ...c, count };
+  });
 
   const max = Math.max(1, ...rows.map((c) => c.count));
   const el = document.getElementById('by-collection');

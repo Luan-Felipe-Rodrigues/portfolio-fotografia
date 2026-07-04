@@ -9,7 +9,9 @@
   },
   "scripts": {
     "migrate:dry": "node --env-file=.env migrate-photos.js --dry-run",
-    "migrate": "node --env-file=.env migrate-photos.js"
+    "migrate": "node --env-file=.env migrate-photos.js",
+    "reconcile-likes:dry": "node --env-file=.env reconcile-likes.js --dry-run",
+    "reconcile-likes": "node --env-file=.env reconcile-likes.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
