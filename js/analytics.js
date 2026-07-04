@@ -38,10 +38,11 @@
   }
 
   function send(payload) {
-    try {
-      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      if (navigator.sendBeacon && navigator.sendBeacon(INGEST_URL, blob)) return true;
-    } catch { /* fall through */ }
+    // fetch(keepalive) is more reliable than sendBeacon here: sendBeacon
+    // with an application/json Blob triggers CORS quirks in Chromium that
+    // fail the request even when the Edge Function replies to OPTIONS with
+    // Allow-* headers. keepalive lets the browser flush during unload just
+    // like sendBeacon would. Silent-fail — analytics never breaks the page.
     try {
       fetch(INGEST_URL, {
         method: 'POST',
@@ -50,7 +51,6 @@
         keepalive: true
       }).catch(() => {});
     } catch { /* silent */ }
-    return false;
   }
 
   function trackPageview() {
