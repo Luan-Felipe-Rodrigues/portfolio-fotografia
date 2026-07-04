@@ -26,6 +26,35 @@
   document.head.appendChild(s);
 })();
 
+// Load Supabase public client + dynamic-render module. Both are no-op unless
+// LR_DYNAMIC.isEnabled() is true (?dynamic=1 or the post-switchover default).
+(function loadDynamic() {
+  const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
+  const prefix = isSubdir ? '../' : '';
+  if (!window.LR_SUPABASE && !document.getElementById('lr-supabase-loader')) {
+    const s1 = document.createElement('script');
+    s1.id = 'lr-supabase-loader';
+    s1.src = prefix + 'js/supabase-public.js';
+    s1.async = false;
+    document.head.appendChild(s1);
+  }
+  if (!window.LR_DYNAMIC && !document.getElementById('lr-dynamic-loader')) {
+    const s2 = document.createElement('script');
+    s2.id = 'lr-dynamic-loader';
+    s2.src = prefix + 'js/dynamic-render.js';
+    s2.async = false;
+    document.head.appendChild(s2);
+  }
+})();
+
+function whenDynamicReady(cb) {
+  if (window.LR_DYNAMIC && window.LR_SUPABASE) return cb();
+  const seen = { d: !!window.LR_DYNAMIC, s: !!window.LR_SUPABASE };
+  function check() { if (seen.d && seen.s) cb(); }
+  if (!seen.d) document.addEventListener('lr:dynamic-ready', () => { seen.d = true; check(); }, { once: true });
+  if (!seen.s) document.addEventListener('lr:supabase-ready', () => { seen.s = true; check(); }, { once: true });
+}
+
 function whenLikesReady(cb) {
   if (window.LR_LIKES) cb();
   else document.addEventListener('lr:likes-ready', cb, { once: true });
@@ -33,6 +62,7 @@ function whenLikesReady(cb) {
 
 document.addEventListener('DOMContentLoaded', () => {
   initHomeGallery();
+  initSeriesDynamic();
   initNav();
   initLocationNav();
   initMasonry();
@@ -52,6 +82,12 @@ function initHomeGallery() {
   const top = document.getElementById('showcase-top');
   const bottom = document.getElementById('showcase-bottom');
   if (!top || !bottom) return;
+
+  // Dynamic path: fetch home_featured photos from Supabase and render.
+  if (window.LR_DYNAMIC && window.LR_DYNAMIC.isEnabled()) {
+    initHomeGalleryDynamic(top, bottom);
+    return;
+  }
 
   const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
   const prefix = isSubdir ? '../' : '';
@@ -115,6 +151,205 @@ function initHomeGallery() {
 
   // Re-init scroll reveal for new items
   initScrollReveal();
+}
+
+/* --- Series pages (dynamic, ?dynamic=1) --- */
+function initSeriesDynamic() {
+  if (!window.LR_DYNAMIC || !window.LR_DYNAMIC.isEnabled()) return;
+
+  const path = window.location.pathname;
+  let type = null;
+  if (path.includes('series-autoral')) type = 'autoral';
+  else if (path.includes('series-prewedding')) type = 'prewedding';
+  else if (path.includes('series-lugares')) type = 'lugares';
+  else if (path.includes('series-eventos')) type = 'eventos';
+  if (!type) return;
+
+  whenDynamicReady(async () => {
+    try {
+      if (type === 'prewedding') {
+        await renderFlatSeries('prewedding');
+      } else if (type === 'eventos') {
+        await renderEventosSeries();
+      } else {
+        await renderGroupedSeries(type);
+      }
+      // Re-init effects that depend on DOM. Each of these is idempotent —
+      // initLightbox skips items already flagged via dataset.
+      initMasonry();
+      initImageLoading();
+      initScrollReveal();
+      initLocationNav();
+      initLightbox();
+    } catch (err) {
+      console.error('[series dynamic] falhou:', err);
+    }
+  });
+}
+
+function galleryItemFor(p) {
+  const item = document.createElement('div');
+  item.className = 'gallery-item';
+  const img = document.createElement('img');
+  img.src = window.LR_DYNAMIC.imageUrl(p.storage_path, { width: 1400, quality: 82 });
+  img.dataset.fullSrc = window.LR_DYNAMIC.imageUrl(p.storage_path, { width: 2200, quality: 85 });
+  img.alt = window.LR_DYNAMIC.altFor(p);
+  img.loading = 'lazy';
+  img.dataset.photoId = p.id;
+  item.appendChild(img);
+  return item;
+}
+
+async function renderFlatSeries(slug) {
+  const result = await window.LR_DYNAMIC.fetchByCollectionSlug(slug);
+  const grid = document.querySelector('.gallery-section .gallery-grid') || document.querySelector('.gallery-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (const p of result.photos) grid.appendChild(galleryItemFor(p));
+}
+
+async function renderGroupedSeries(parentSlug) {
+  const groups = await window.LR_DYNAMIC.fetchByParentSlug(parentSlug);
+  // Sections live directly under <main>. Some HTML files nest them
+  // under <body>. Handle either.
+  const sections = document.querySelectorAll('.gallery-section');
+  if (!sections.length) return;
+  const anchor = sections[sections.length - 1].parentElement;
+  sections.forEach((s) => s.remove());
+
+  const locNav = document.querySelector('.location-nav-inner');
+  if (locNav) locNav.innerHTML = '';
+
+  const loc = window.LR_DYNAMIC.locale();
+  for (const g of groups) {
+    if (!g.photos.length) continue;
+    const col = g.collection;
+    const prefix = `${parentSlug}-`;
+    const sectionId = col.slug.startsWith(prefix) ? col.slug.slice(prefix.length) : col.slug;
+
+    const section = document.createElement('section');
+    section.className = 'gallery-section';
+    section.id = sectionId;
+    const grid = document.createElement('div');
+    grid.className = 'gallery-grid';
+    for (const p of g.photos) grid.appendChild(galleryItemFor(p));
+    section.appendChild(grid);
+    anchor.appendChild(section);
+
+    if (locNav) {
+      const link = document.createElement('a');
+      link.className = 'location-nav-item';
+      link.href = `#${sectionId}`;
+      link.textContent = loc === 'en' ? (col.name_en || col.name_pt) : loc === 'es' ? (col.name_es || col.name_pt) : col.name_pt;
+      locNav.appendChild(link);
+    }
+  }
+}
+
+async function renderEventosSeries() {
+  const result = await window.LR_DYNAMIC.fetchByCollectionSlug('eventos');
+  const byYear = new Map();
+  for (const p of result.photos) {
+    const year = p.taken_at ? p.taken_at.slice(0, 4) : 'sem-data';
+    if (!byYear.has(year)) byYear.set(year, []);
+    byYear.get(year).push(p);
+  }
+  const years = Array.from(byYear.keys()).sort().reverse();
+
+  const sections = document.querySelectorAll('.gallery-section');
+  if (!sections.length) return;
+  const anchor = sections[sections.length - 1].parentElement;
+  sections.forEach((s) => s.remove());
+
+  const locNav = document.querySelector('.location-nav-inner');
+  if (locNav) locNav.innerHTML = '';
+
+  for (const year of years) {
+    const sectionId = year === 'sem-data' ? 'sem-data' : `y${year}`;
+    const section = document.createElement('section');
+    section.className = 'gallery-section';
+    section.id = sectionId;
+    const grid = document.createElement('div');
+    grid.className = 'gallery-grid';
+    for (const p of byYear.get(year)) grid.appendChild(galleryItemFor(p));
+    section.appendChild(grid);
+    anchor.appendChild(section);
+
+    if (locNav) {
+      const link = document.createElement('a');
+      link.className = 'location-nav-item';
+      link.href = `#${sectionId}`;
+      link.textContent = year === 'sem-data' ? 'Sem data' : year;
+      locNav.appendChild(link);
+    }
+  }
+}
+
+/* --- Home Gallery (dynamic, ?dynamic=1) --- */
+function initHomeGalleryDynamic(top, bottom) {
+  whenDynamicReady(async () => {
+    try {
+      const photos = await window.LR_DYNAMIC.fetchHomePhotos();
+      if (!photos.length) {
+        top.innerHTML = '<p class="placeholder">Nenhuma foto marcada como home.</p>';
+        return;
+      }
+
+      // Group by collection slug and pick 1 random per group, mimicking the
+      // static behavior. Fall back to individual photos if grouping is empty.
+      const byCollection = new Map();
+      for (const p of photos) {
+        const slug = p.collection?.slug || p.collection?.parent_slug || 'other';
+        if (!byCollection.has(slug)) byCollection.set(slug, []);
+        byCollection.get(slug).push(p);
+      }
+      const picked = [];
+      for (const group of byCollection.values()) {
+        picked.push(group[Math.floor(Math.random() * group.length)]);
+      }
+
+      // Shuffle across collections
+      for (let i = picked.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [picked[i], picked[j]] = [picked[j], picked[i]];
+      }
+
+      const half = Math.ceil(picked.length / 2);
+      const isSubdir = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/');
+      const prefix = isSubdir ? '' : ''; // series links are relative to the current dir
+
+      function linkFor(photo) {
+        const parent = photo.collection?.parent_slug || photo.collection?.slug;
+        if (parent === 'autoral') return 'series-autoral.html';
+        if (parent === 'prewedding') return 'series-prewedding.html';
+        if (parent === 'eventos') return 'series-eventos.html';
+        return 'series-lugares.html'; // default for lugares and unknown
+      }
+
+      function buildItems(container, items) {
+        items.forEach((p) => {
+          const div = document.createElement('div');
+          div.className = 'showcase-item reveal';
+          const a = document.createElement('a');
+          a.href = linkFor(p);
+          const img = document.createElement('img');
+          img.src = window.LR_DYNAMIC.imageUrl(p.storage_path, { width: 1200, quality: 80 });
+          img.alt = window.LR_DYNAMIC.altFor(p);
+          img.loading = 'lazy';
+          img.dataset.photoId = p.id;
+          a.appendChild(img);
+          div.appendChild(a);
+          container.appendChild(div);
+        });
+      }
+
+      buildItems(top, picked.slice(0, half));
+      buildItems(bottom, picked.slice(half));
+      initScrollReveal();
+    } catch (err) {
+      console.error('[home dynamic] falhou, mantendo vazio:', err);
+    }
+  });
 }
 
 /* --- Navigation --- */
@@ -433,8 +668,12 @@ function initLightbox() {
   let currentImages = [];
   let currentIndex = 0;
 
-  // Open lightbox on image click (skip items that are links to series)
+  // Open lightbox on image click (skip items that are links to series).
+  // Idempotent: dataset flag prevents double-attaching when re-init runs
+  // after dynamic render.
   document.querySelectorAll('.gallery-item:not(.gallery-link)').forEach(item => {
+    if (item.dataset.lbAttached === '1') return;
+    item.dataset.lbAttached = '1';
     item.addEventListener('click', () => {
       const img = item.querySelector('img');
       if (!img) return;
@@ -443,11 +682,14 @@ function initLightbox() {
       if (!grid) return;
 
       currentImages = Array.from(grid.querySelectorAll('.gallery-item img'))
-        .map(i => i.src || i.dataset.src)
-        .filter(Boolean);
+        .filter(i => i.src || i.dataset.src || i.dataset.fullSrc)
+        .map(i => ({
+          src: i.dataset.fullSrc || i.src || i.dataset.src,
+          photoId: i.dataset.photoId || null
+        }));
 
-      const clickedSrc = img.src || img.dataset.src;
-      currentIndex = currentImages.indexOf(clickedSrc);
+      const clickedSrc = img.dataset.fullSrc || img.src || img.dataset.src;
+      currentIndex = currentImages.findIndex(it => it.src === clickedSrc);
       if (currentIndex === -1) currentIndex = 0;
 
       showImage();
@@ -457,8 +699,11 @@ function initLightbox() {
   });
 
   function showImage() {
-    if (currentImages[currentIndex]) {
-      lightboxImg.src = currentImages[currentIndex];
+    const item = currentImages[currentIndex];
+    if (item) {
+      lightboxImg.src = item.src;
+      if (item.photoId) lightboxImg.dataset.photoId = item.photoId;
+      else delete lightboxImg.dataset.photoId;
       counter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
       lightbox.dispatchEvent(new Event('lr:photo-changed'));
     }

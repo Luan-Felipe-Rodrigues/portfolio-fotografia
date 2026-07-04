@@ -185,20 +185,49 @@
     return a;
   }
 
-  // Build grid with staggered entrance
-  const shuffled = shuffle(photos);
-  shuffled.forEach(function(src, i) {
-    var item = document.createElement('div');
-    item.className = 'all-work-item';
-    item.style.animationDelay = (0.1 + i * 0.015) + 's';
-    var img = document.createElement('img');
-    img.src = prefix + src;
-    img.alt = '';
-    img.loading = 'lazy';
-    img.draggable = false;
-    item.appendChild(img);
-    grid.appendChild(item);
-  });
+  // Load photos either from Supabase (?dynamic=1) or the static array above.
+  // Falls back to static on any error so the page never comes up blank.
+  async function loadPhotoList() {
+    if (window.LR_DYNAMIC && window.LR_DYNAMIC.isEnabled()) {
+      await new Promise((r) => {
+        if (window.LR_SUPABASE) r();
+        else document.addEventListener('lr:supabase-ready', r, { once: true });
+      });
+      try {
+        const rows = await window.LR_DYNAMIC.fetchAllPublished();
+        return rows.map((p) => ({
+          src: window.LR_DYNAMIC.imageUrl(p.storage_path, { width: 1200, quality: 80 }),
+          fullSrc: window.LR_DYNAMIC.imageUrl(p.storage_path, { width: 2000, quality: 85 }),
+          alt: window.LR_DYNAMIC.altFor(p),
+          photoId: p.id
+        }));
+      } catch (e) {
+        console.error('[allwork] dynamic falhou, usando static:', e);
+      }
+    }
+    return photos.map((src) => ({ src: prefix + src, fullSrc: prefix + src, alt: '', photoId: null }));
+  }
+
+  // Wrap the rest of the module in an async bootstrap so we can await the
+  // photo list before touching the DOM.
+  (async function bootstrap() {
+    const photoList = await loadPhotoList();
+    // Build grid with staggered entrance
+    const shuffled = shuffle(photoList);
+    shuffled.forEach(function(p, i) {
+      var item = document.createElement('div');
+      item.className = 'all-work-item';
+      item.style.animationDelay = (0.1 + i * 0.015) + 's';
+      var img = document.createElement('img');
+      img.src = p.src;
+      img.alt = p.alt || '';
+      img.loading = 'lazy';
+      img.draggable = false;
+      if (p.photoId) img.dataset.photoId = p.photoId;
+      if (p.fullSrc && p.fullSrc !== p.src) img.dataset.fullSrc = p.fullSrc;
+      item.appendChild(img);
+      grid.appendChild(item);
+    });
 
   // Clone grid horizontally for seamless infinite loop. The clone shows
   // already-faded-in items so the join between original and clone is invisible.
@@ -374,16 +403,26 @@
   var lbImg = lightbox.querySelector('img');
   var lbCounter = lightbox.querySelector('.allwork-lb-counter');
   var lbIndex = 0;
-  var lbPhotos = shuffled.map(function(s) { return prefix + s; });
+  // Each entry: { src (grid thumb URL), fullSrc (high-res URL), photoId }
+  var lbPhotos = shuffled.map(function(p) {
+    return {
+      src: p.src,
+      fullSrc: p.fullSrc || p.src,
+      photoId: p.photoId || null
+    };
+  });
 
   function lbShow() {
-    lbImg.src = lbPhotos[lbIndex];
+    var entry = lbPhotos[lbIndex];
+    lbImg.src = entry.fullSrc;
+    if (entry.photoId) lbImg.dataset.photoId = entry.photoId;
+    else delete lbImg.dataset.photoId;
     lbCounter.textContent = (lbIndex + 1) + ' / ' + lbPhotos.length;
     lightbox.dispatchEvent(new Event('lr:photo-changed'));
   }
 
   function lbOpen(src) {
-    lbIndex = lbPhotos.indexOf(src);
+    lbIndex = lbPhotos.findIndex(function(p) { return p.src === src; });
     if (lbIndex === -1) lbIndex = 0;
     lbShow();
     lightbox.classList.add('active');
@@ -452,4 +491,5 @@
   }
   if (window.LR_LIKES) attachLikes();
   else document.addEventListener('lr:likes-ready', attachLikes, { once: true });
+  })(); // end bootstrap()
 })();

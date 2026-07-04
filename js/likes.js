@@ -160,10 +160,18 @@
 
     const liked = loadLiked();
 
-    function update() {
+    function currentId() {
+      // Prefer a UUID from data-photo-id (post-migration render). Falls back
+      // to normalizing the src for the legacy path-based system.
+      const img = getImage();
+      if (img && img.dataset && img.dataset.photoId) return img.dataset.photoId;
       const src = getCurrentSrc();
-      if (!src) return;
-      const id = normalizeId(src);
+      return normalizeId(src);
+    }
+
+    function update() {
+      const id = currentId();
+      if (!id) return;
       btn.dataset.id = id;
       const isLiked = !!liked[id];
       btn.classList.toggle('liked', isLiked);
@@ -198,9 +206,8 @@
 
     btn.addEventListener('click', async function(e) {
       e.stopPropagation();
-      const src = getCurrentSrc();
-      if (!src) return;
-      const id = normalizeId(src);
+      const id = currentId();
+      if (!id) return;
       const wasLiked = !!liked[id];
 
       if (wasLiked) {
