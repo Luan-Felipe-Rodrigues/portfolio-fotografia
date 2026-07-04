@@ -20,7 +20,9 @@
   if (window.LR_DYNAMIC) return;
 
   // ------ Config ------
-  const DEFAULT_DYNAMIC = false; // flipped to true in S1.18 switchover
+  const DEFAULT_DYNAMIC = true; // S1.18 switchover 2026-07-04: site is now
+  // Supabase-native by default. `?dynamic=0` in the URL forces the static
+  // fallback while Sprint 1 remnants are still in the repo.
 
   // ------ Helpers ------
   function locale() {
