@@ -1,5 +1,5 @@
 /*
- * Portal do Cliente — Sprint 6, Semana 3.
+ * Portal do Cliente.
  *
  * Standalone: não usa main.js, dinâmic-render, likes, analytics. Vive
  * paralelo ao site público. Servido por:
@@ -71,7 +71,7 @@ function render(slug, data) {
       <div class="portal-header-inner">
         <p class="portal-eyebrow">Portal privado</p>
         <h1 class="portal-title">Olá, ${escapeHtml(firstName || data.client_name)}</h1>
-        <p class="portal-sub">Suas fotos com Luan Rodrigues. Este link é seu — não compartilhe.</p>
+        <p class="portal-sub">Suas fotos com Luan Rodrigues. Este link é seu, não compartilhe.</p>
       </div>
     </header>
 
@@ -157,7 +157,7 @@ function renderThumb(p, ensaioId, ensaioTitle, position, total) {
     p.has_comment ? '<span class="thumb-badge" aria-label="Comentada">💬</span>' : '',
     p.print_selected ? '<span class="thumb-badge" aria-label="Selecionada para impressão">🖨</span>' : ''
   ].filter(Boolean).join('');
-  const label = `Foto ${position} de ${total} — ${ensaioTitle}. Abrir em tela cheia.`;
+  const label = `Foto ${position} de ${total}, ${ensaioTitle}. Abrir em tela cheia.`;
   return `
     <button type="button" class="portal-thumb" data-photo-id="${p.id}" data-ensaio-id="${ensaioId}" aria-label="${escapeHtml(label)}">
       <img src="${p.signed_url}" alt="" loading="lazy">

@@ -31,7 +31,7 @@ async function loadQuotes() {
     .select('id, status, ensaio_type, contact_name, created_at')
     .in('status', ['nova', 'vista', 'respondida'])
     .order('created_at', { ascending: false });
-  if (error) return; // silencia — sem cotações não bloqueia dashboard
+  if (error) return; // silencia. Sem cotações não bloqueia dashboard.
   const openCount = data.length;
   if (openCount > 0) {
     const quick = document.getElementById('quotes-quick');
@@ -59,7 +59,7 @@ async function loadQuotes() {
         return `
           <a class="recent-item" href="./quote.html?id=${q.id}" style="text-decoration:none;color:inherit">
             <div class="recent-meta">
-              <div class="recent-title">${escapeHtml(q.contact_name)} — ${escapeHtml(type)}</div>
+              <div class="recent-title">${escapeHtml(q.contact_name)} · ${escapeHtml(type)}</div>
               <div class="recent-tag muted">${when} · ${isOpen ? '<strong>' + q.status + '</strong>' : q.status}</div>
             </div>
           </a>
@@ -92,7 +92,7 @@ async function loadTraffic() {
   setKpi('tr-sessions', new Set(pv.map((r) => r.session_id)).size);
   const durations = pv.map((r) => r.duration_ms).filter((d) => d != null && d > 0);
   const avgSec = durations.length ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length / 1000) : 0;
-  setKpi('tr-avg', avgSec > 0 ? `${avgSec}s` : '—');
+  setKpi('tr-avg', avgSec > 0 ? `${avgSec}s` : '·');
   setKpi('tr-photo-views', phvRes.data.length);
 
   const counts = new Map();

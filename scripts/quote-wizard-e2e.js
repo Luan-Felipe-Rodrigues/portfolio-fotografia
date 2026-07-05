@@ -127,7 +127,7 @@ async function main() {
     // 6. S4:summary + validation ----------------------------------------
     const s4 = await page.evaluate(() => ({
       title: document.querySelector('#qw-body h3')?.textContent,
-      summaryHasStyles: document.querySelector('.qw-summary dl')?.textContent.includes('Cinematográfico'),
+      summaryHasStyles: document.querySelector('.qw-summary dl')?.textContent.includes('Espontâneo'),
       hasEstimate: !!document.querySelector('.qw-estimate'),
       submitDisabled: document.querySelector('#qw-footer-right .qw-btn')?.disabled
     }));

@@ -172,8 +172,12 @@
         es: 'Sesión de compromiso, generalmente al aire libre.'
       },
       duration: 4,
-      styles: ['cinematográfico', 'candid', 'natural'],
-      allStyles: ['cinematográfico', 'candid', 'natural', 'romântico', 'documental']
+      styles: ['candid', 'romântico', 'natural'],
+      allStyles: [
+        'candid', 'romântico', 'íntimo', 'natural', 'cinematográfico',
+        'ao ar livre', 'golden hour', 'delicado', 'documental',
+        'preto e branco', 'colorido'
+      ]
     },
     {
       id: 'autoral',
@@ -184,8 +188,11 @@
         es: 'Sesión artística o retrato conceptual.'
       },
       duration: 2,
-      styles: ['conceitual', 'minimalista', 'retrato'],
-      allStyles: ['conceitual', 'minimalista', 'retrato', 'preto e branco', 'editorial']
+      styles: ['retrato', 'minimalista', 'conceitual'],
+      allStyles: [
+        'retrato', 'minimalista', 'conceitual', 'editorial', 'estúdio',
+        'preto e branco', 'colorido', 'dramático', 'delicado', 'ao ar livre'
+      ]
     },
     {
       id: 'eventos',
@@ -196,8 +203,11 @@
         es: 'Corporativo, boda, fiesta. Cobertura completa.'
       },
       duration: 6,
-      styles: ['fotojornalismo', 'documental'],
-      allStyles: ['fotojornalismo', 'documental', 'posado', 'candid', 'preto e branco']
+      styles: ['candid', 'alegre', 'documental'],
+      allStyles: [
+        'candid', 'alegre', 'documental', 'posado', 'elegante',
+        'fotojornalismo', 'preto e branco', 'colorido', 'golden hour'
+      ]
     },
     {
       id: 'lugares',
@@ -208,8 +218,11 @@
         es: 'Viaje, paisaje, arquitectura, para ti o marca.'
       },
       duration: null,
-      styles: ['paisagem', 'arquitetura'],
-      allStyles: ['paisagem', 'arquitetura', 'documental', 'preto e branco', 'aéreo']
+      styles: ['paisagem', 'arquitetura', 'golden hour'],
+      allStyles: [
+        'paisagem', 'arquitetura', 'natureza', 'urbano', 'golden hour',
+        'noturno', 'aéreo', 'preto e branco', 'documental'
+      ]
     },
     {
       id: 'outros',
@@ -245,6 +258,10 @@
       label: { pt: 'Romântico', en: 'Romantic', es: 'Romántico' },
       hint:  { pt: 'Foco no afeto entre vocês.', en: 'Focused on the affection between you.', es: 'Enfocado en el afecto entre ustedes.' }
     },
+    'íntimo': {
+      label: { pt: 'Íntimo', en: 'Intimate', es: 'Íntimo' },
+      hint:  { pt: 'Perto de vocês, gestos e olhares.', en: 'Close-up, gestures and glances.', es: 'Cerca, gestos y miradas.' }
+    },
     'documental': {
       label: { pt: 'Documental', en: 'Documentary', es: 'Documental' },
       hint:  { pt: 'Como se eu tivesse acompanhando o dia.', en: 'Like I was tagging along.', es: 'Como si acompañara el día.' }
@@ -265,6 +282,26 @@
       label: { pt: 'Preto e branco', en: 'Black and white', es: 'Blanco y negro' },
       hint:  { pt: 'Sem cor, mais atemporal.', en: 'No color, more timeless.', es: 'Sin color, más atemporal.' }
     },
+    'colorido': {
+      label: { pt: 'Colorido', en: 'Colorful', es: 'Colorido' },
+      hint:  { pt: 'Cores vibrantes e vivas.', en: 'Vibrant, alive colors.', es: 'Colores vibrantes y vivos.' }
+    },
+    'delicado': {
+      label: { pt: 'Delicado', en: 'Soft', es: 'Delicado' },
+      hint:  { pt: 'Cores suaves, luz macia.', en: 'Soft light, gentle colors.', es: 'Colores suaves, luz suave.' }
+    },
+    'dramático': {
+      label: { pt: 'Dramático', en: 'Dramatic', es: 'Dramático' },
+      hint:  { pt: 'Contrastes fortes, sombras marcantes.', en: 'Strong contrast, deep shadows.', es: 'Contrastes fuertes, sombras marcadas.' }
+    },
+    'alegre': {
+      label: { pt: 'Alegre', en: 'Joyful', es: 'Alegre' },
+      hint:  { pt: 'Sorrisos, energia, gente rindo.', en: 'Smiles, energy, laughter.', es: 'Sonrisas, energía, gente riendo.' }
+    },
+    'elegante': {
+      label: { pt: 'Elegante', en: 'Elegant', es: 'Elegante' },
+      hint:  { pt: 'Clássico, atemporal, sofisticado.', en: 'Classic, timeless, refined.', es: 'Clásico, atemporal, sofisticado.' }
+    },
     'editorial': {
       label: { pt: 'Editorial', en: 'Editorial', es: 'Editorial' },
       hint:  { pt: 'Cara de revista, produção mais elaborada.', en: 'Magazine feel, more produced.', es: 'Estilo revista, más producido.' }
@@ -276,6 +313,30 @@
     'posado': {
       label: { pt: 'Posado', en: 'Posed', es: 'Posado' },
       hint:  { pt: 'Fotos preparadas, gente olhando pra câmera.', en: 'Prepared shots, camera-facing.', es: 'Fotos preparadas, mirando la cámara.' }
+    },
+    'ao ar livre': {
+      label: { pt: 'Ao ar livre', en: 'Outdoors', es: 'Al aire libre' },
+      hint:  { pt: 'Natureza, sol, verde.', en: 'Nature, sun, greenery.', es: 'Naturaleza, sol, verde.' }
+    },
+    'estúdio': {
+      label: { pt: 'Estúdio', en: 'Studio', es: 'Estudio' },
+      hint:  { pt: 'Fundo controlado, luz trabalhada.', en: 'Controlled backdrop, worked light.', es: 'Fondo controlado, luz trabajada.' }
+    },
+    'urbano': {
+      label: { pt: 'Urbano', en: 'Urban', es: 'Urbano' },
+      hint:  { pt: 'Cidade, rua, prédios.', en: 'City, street, buildings.', es: 'Ciudad, calle, edificios.' }
+    },
+    'golden hour': {
+      label: { pt: 'Golden hour', en: 'Golden hour', es: 'Golden hour' },
+      hint:  { pt: 'Luz dourada do fim da tarde.', en: 'Late-afternoon golden light.', es: 'Luz dorada del atardecer.' }
+    },
+    'noturno': {
+      label: { pt: 'Noturno', en: 'Night', es: 'Nocturno' },
+      hint:  { pt: 'À noite, luzes da cidade ou lua.', en: 'At night, city lights or moon.', es: 'De noche, luces de ciudad o luna.' }
+    },
+    'natureza': {
+      label: { pt: 'Natureza', en: 'Nature', es: 'Naturaleza' },
+      hint:  { pt: 'Verde, água, pouco elemento humano.', en: 'Green, water, little human presence.', es: 'Verde, agua, poco elemento humano.' }
     },
     'paisagem': {
       label: { pt: 'Paisagem', en: 'Landscape', es: 'Paisaje' },

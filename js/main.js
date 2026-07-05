@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Luan Rodrigues — Portfolio JS
+   Luan Rodrigues Portfolio JS
    ========================================================================== */
 
 // Load the likes module on every page (no-op on pages without a lightbox).
@@ -177,9 +177,9 @@ function initFooterNote() {
     (window.location.pathname.startsWith('/en/') ? 'en' :
      window.location.pathname.startsWith('/es/') ? 'es' : 'pt');
   const NOTE = {
-    pt: 'Sem cookies, sem tracking pessoal — apenas contagem anônima de visitas.',
-    en: 'No cookies, no personal tracking — anonymous visit counts only.',
-    es: 'Sin cookies, sin tracking personal — solo conteo anónimo de visitas.'
+    pt: 'Sem cookies, sem tracking pessoal. Só contagem anônima de visitas.',
+    en: 'No cookies, no personal tracking. Just anonymous visit counts.',
+    es: 'Sin cookies, sin tracking personal. Solo conteo anónimo de visitas.'
   };
   const COPYRIGHT = '© 2026 Luan Rodrigues';
 
@@ -333,7 +333,7 @@ function runSeriesDynamic(type) {
       } else {
         await renderGroupedSeries(type);
       }
-      // Re-init effects that depend on DOM. Each of these is idempotent —
+      // Re-init effects that depend on DOM. Each of these is idempotent;
       // initLightbox skips items already flagged via dataset.
       initMasonry();
       initImageLoading();
@@ -1013,7 +1013,7 @@ function initScatterToGrid() {
     items.forEach(item => item.classList.add('gsap-animated'));
 
     items.forEach((item, i) => {
-      // Random scatter values — like photos tossed on a table
+      // Random scatter values, like photos tossed on a table
       const randomX = gsap.utils.random(-120, 120);
       const randomY = gsap.utils.random(-60, 60);
       const randomRotation = gsap.utils.random(-12, 12);

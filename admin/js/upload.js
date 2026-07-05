@@ -78,7 +78,7 @@ async function handleFiles(files) {
   }
   if (!files.length) return;
   for (const f of files) {
-    // sequential upload — simpler status UI
+    // sequential upload keeps the status UI simple
     // eslint-disable-next-line no-await-in-loop
     await uploadOne(f);
   }
