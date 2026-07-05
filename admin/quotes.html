@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Cotações - Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <div id="admin-shell-header"></div>
+
+    <section class="page-toolbar">
+      <div class="segmented" id="status-filter" role="tablist">
+        <button type="button" data-status="abertas" class="active" role="tab" aria-selected="true">Abertas</button>
+        <button type="button" data-status="nova" role="tab" aria-selected="false">Novas</button>
+        <button type="button" data-status="vista" role="tab" aria-selected="false">Vistas</button>
+        <button type="button" data-status="respondida" role="tab" aria-selected="false">Respondidas</button>
+        <button type="button" data-status="ganha" role="tab" aria-selected="false">Ganhas</button>
+        <button type="button" data-status="perdida" role="tab" aria-selected="false">Perdidas</button>
+        <button type="button" data-status="todas" role="tab" aria-selected="false">Todas</button>
+      </div>
+    </section>
+
+    <div id="quotes-list" class="photos-list">
+      <p class="placeholder">Carregando...</p>
+    </div>
+  </main>
+
+  <script type="module" src="./js/quotes-list.js"></script>
+</body>
+</html>

@@ -15,7 +15,8 @@
     "backfill-dimensions:dry": "node --env-file=.env backfill-dimensions.js --dry-run",
     "backfill-dimensions": "node --env-file=.env backfill-dimensions.js",
     "smoke-test": "node smoke-test.js",
-    "portal-e2e": "node portal-e2e.js"
+    "portal-e2e": "node portal-e2e.js",
+    "quote-e2e": "node quote-wizard-e2e.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

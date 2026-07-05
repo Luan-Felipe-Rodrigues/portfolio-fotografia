@@ -8,12 +8,69 @@ renderShell('dashboard', session.user.email);
 try {
   await load();
   await loadTraffic();
+  await loadQuotes();
 } catch (e) {
   console.error(e);
   document.querySelectorAll('.placeholder').forEach((el) => {
     el.textContent = 'Erro: ' + e.message;
     el.classList.add('error');
   });
+}
+
+const QUOTE_TYPE_LABELS = {
+  prewedding: 'Pre-Wedding',
+  autoral: 'Autoral',
+  eventos: 'Eventos',
+  lugares: 'Lugares',
+  outros: 'Outros'
+};
+
+async function loadQuotes() {
+  const { data, error } = await supabase
+    .from('quote_requests')
+    .select('id, status, ensaio_type, contact_name, created_at')
+    .in('status', ['nova', 'vista', 'respondida'])
+    .order('created_at', { ascending: false });
+  if (error) return; // silencia — sem cotações não bloqueia dashboard
+  const openCount = data.length;
+  if (openCount > 0) {
+    const quick = document.getElementById('quotes-quick');
+    const badge = document.getElementById('quotes-badge');
+    if (quick && badge) {
+      badge.textContent = openCount;
+      quick.hidden = false;
+    }
+  }
+  // Últimas 3 cotações (mostra painel se houver qualquer cotação, não só abertas)
+  const { data: recent } = await supabase
+    .from('quote_requests')
+    .select('id, status, ensaio_type, contact_name, contact_email, created_at')
+    .order('created_at', { ascending: false })
+    .limit(3);
+  if (recent && recent.length) {
+    const panel = document.getElementById('recent-quotes-panel');
+    const list = document.getElementById('recent-quotes');
+    if (panel && list) {
+      panel.hidden = false;
+      list.innerHTML = recent.map((q) => {
+        const type = QUOTE_TYPE_LABELS[q.ensaio_type] || q.ensaio_type;
+        const when = new Date(q.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const isOpen = ['nova', 'vista', 'respondida'].includes(q.status);
+        return `
+          <a class="recent-item" href="./quote.html?id=${q.id}" style="text-decoration:none;color:inherit">
+            <div class="recent-meta">
+              <div class="recent-title">${escapeHtml(q.contact_name)} — ${escapeHtml(type)}</div>
+              <div class="recent-tag muted">${when} · ${isOpen ? '<strong>' + q.status + '</strong>' : q.status}</div>
+            </div>
+          </a>
+        `;
+      }).join('');
+    }
+  }
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 async function loadTraffic() {
