@@ -8,8 +8,13 @@ renderShell('photos', session.user.email);
 const filterEl = document.getElementById('collection-filter');
 const listEl = document.getElementById('photos-list');
 const viewToggle = document.getElementById('view-toggle');
+const selectAllEl = document.getElementById('select-all');
+const bulkActionsEl = document.getElementById('bulk-actions');
+const bulkCountEl = document.getElementById('bulk-count');
 
 let currentView = 'active';
+let currentPhotos = [];
+const selected = new Set();
 
 await loadCollectionsForSelect(filterEl, { includeEmpty: true, emptyLabel: 'Todas as coleções' });
 
@@ -28,8 +33,25 @@ viewToggle.querySelectorAll('button').forEach((btn) => {
   });
 });
 
+selectAllEl.addEventListener('change', () => {
+  if (selectAllEl.checked) {
+    for (const p of currentPhotos) selected.add(p.id);
+  } else {
+    selected.clear();
+  }
+  syncCheckboxes();
+  updateBulkBar();
+});
+
+document.querySelectorAll('[data-bulk]').forEach((btn) => {
+  btn.addEventListener('click', () => handleBulk(btn.dataset.bulk));
+});
+
 async function loadPhotos() {
   listEl.innerHTML = '<p class="placeholder">Carregando fotos...</p>';
+  selected.clear();
+  selectAllEl.checked = false;
+  updateBulkBar();
 
   let query = supabase
     .from('photos')
@@ -46,6 +68,8 @@ async function loadPhotos() {
     return;
   }
 
+  currentPhotos = data;
+
   if (!data.length) {
     const emptyMsg = currentView === 'archived'
       ? 'Nenhuma foto arquivada.'
@@ -56,6 +80,17 @@ async function loadPhotos() {
 
   listEl.innerHTML = data.map(renderRow).join('');
   data.forEach((p) => wireRow(p));
+
+  // Show/hide bulk unarchive button per view
+  const restoreBtn = document.querySelector('[data-bulk="unarchive"]');
+  const archiveBtn = document.querySelector('[data-bulk="archive"]');
+  const publishBtn = document.querySelector('[data-bulk="publish"]');
+  const unpubBtn = document.querySelector('[data-bulk="unpublish"]');
+  const showArchived = currentView === 'archived';
+  restoreBtn.hidden = !showArchived;
+  archiveBtn.hidden = showArchived;
+  publishBtn.hidden = showArchived;
+  unpubBtn.hidden = showArchived;
 }
 
 function renderRow(p) {
@@ -77,6 +112,9 @@ function renderRow(p) {
 
   return `
     <div class="photo-row" data-id="${p.id}">
+      <label class="row-select">
+        <input type="checkbox" class="row-checkbox" data-id="${p.id}">
+      </label>
       <img src="${thumb}" alt="" loading="lazy" width="200">
       <div class="photo-meta">
         <div class="photo-alt">${escapeHtml(p.alt_pt || '')}${!p.alt_pt ? '<em class="muted">sem alt-text</em>' : ''}</div>
@@ -99,6 +137,15 @@ function renderRow(p) {
 function wireRow(p) {
   const row = listEl.querySelector(`.photo-row[data-id="${p.id}"]`);
   if (!row) return;
+
+  const cb = row.querySelector('.row-checkbox');
+  cb.addEventListener('change', () => {
+    if (cb.checked) selected.add(p.id);
+    else selected.delete(p.id);
+    updateBulkBar();
+    selectAllEl.checked = selected.size === currentPhotos.length && currentPhotos.length > 0;
+    selectAllEl.indeterminate = selected.size > 0 && selected.size < currentPhotos.length;
+  });
 
   row.querySelector('[data-field="order"]').addEventListener('change', async (e) => {
     const newOrder = parseInt(e.target.value, 10);
@@ -127,6 +174,8 @@ function wireRow(p) {
         return;
       }
       row.remove();
+      selected.delete(p.id);
+      updateBulkBar();
     });
   }
 
@@ -142,7 +191,95 @@ function wireRow(p) {
       if (storageErr) console.warn('Falha ao apagar objeto do storage:', storageErr.message);
     }
     row.remove();
+    selected.delete(p.id);
+    updateBulkBar();
   });
+}
+
+function syncCheckboxes() {
+  listEl.querySelectorAll('.row-checkbox').forEach((cb) => {
+    cb.checked = selected.has(cb.dataset.id);
+  });
+}
+
+function updateBulkBar() {
+  bulkCountEl.textContent = `${selected.size} selecionada${selected.size !== 1 ? 's' : ''}`;
+  bulkActionsEl.hidden = selected.size === 0;
+}
+
+async function handleBulk(action) {
+  if (!selected.size) return;
+  const ids = [...selected];
+
+  const labels = {
+    publish: `Publicar ${ids.length} foto${ids.length > 1 ? 's' : ''}?`,
+    unpublish: `Despublicar ${ids.length} foto${ids.length > 1 ? 's' : ''}?`,
+    archive: `Arquivar ${ids.length} foto${ids.length > 1 ? 's' : ''}?`,
+    unarchive: `Restaurar ${ids.length} foto${ids.length > 1 ? 's' : ''}?`,
+    delete: `EXCLUIR ${ids.length} foto${ids.length > 1 ? 's' : ''} permanentemente? Não dá pra desfazer.`,
+    clear: null
+  };
+
+  if (action === 'clear') {
+    selected.clear();
+    syncCheckboxes();
+    updateBulkBar();
+    selectAllEl.checked = false;
+    selectAllEl.indeterminate = false;
+    return;
+  }
+
+  if (!confirm(labels[action])) return;
+
+  // Show progress inline in the bulk bar
+  const originalText = bulkCountEl.textContent;
+  bulkCountEl.textContent = `Processando 0/${ids.length}...`;
+
+  let done = 0;
+  let errors = 0;
+
+  for (const id of ids) {
+    try {
+      if (action === 'publish' || action === 'unpublish') {
+        const { error } = await supabase.rpc('update_photo', {
+          p_id: id,
+          p_collection_id: null,
+          p_alt_pt: null,
+          p_alt_en: null,
+          p_alt_es: null,
+          p_display_order: null,
+          p_is_published: action === 'publish',
+          p_is_home_featured: null,
+          p_taken_at: null
+        });
+        if (error) throw error;
+      } else if (action === 'archive' || action === 'unarchive') {
+        const { error } = await supabase.rpc('set_photo_archived', {
+          p_id: id,
+          p_archived: action === 'archive'
+        });
+        if (error) throw error;
+      } else if (action === 'delete') {
+        const { data: path, error } = await supabase.rpc('delete_photo', { p_id: id });
+        if (error) throw error;
+        if (path) {
+          await supabase.storage.from('photos').remove([path]).catch(() => {});
+        }
+      }
+      done++;
+    } catch (e) {
+      errors++;
+      console.error(`bulk ${action} ${id}:`, e.message);
+    }
+    bulkCountEl.textContent = `Processando ${done + errors}/${ids.length}...`;
+  }
+
+  if (errors) {
+    alert(`Concluído com ${errors} erro(s). Ver console.`);
+  }
+
+  // Refresh
+  await loadPhotos();
 }
 
 function escapeHtml(s) {

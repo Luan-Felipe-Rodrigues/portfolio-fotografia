@@ -27,6 +27,22 @@
         <a href="./upload.html" class="button">Enviar fotos</a>
       </div>
 
+      <div class="bulk-toolbar" id="bulk-toolbar">
+        <label class="checkbox">
+          <input type="checkbox" id="select-all">
+          <span>Selecionar todas visíveis</span>
+        </label>
+        <div class="bulk-actions" id="bulk-actions" hidden>
+          <span class="bulk-count" id="bulk-count">0</span>
+          <button type="button" class="button" data-bulk="publish">Publicar</button>
+          <button type="button" class="button ghost" data-bulk="unpublish">Despublicar</button>
+          <button type="button" class="button ghost" data-bulk="archive">Arquivar</button>
+          <button type="button" class="button ghost" data-bulk="unarchive" hidden>Restaurar</button>
+          <button type="button" class="button danger" data-bulk="delete">Excluir</button>
+          <button type="button" class="button ghost" data-bulk="clear">Limpar seleção</button>
+        </div>
+      </div>
+
       <div id="photos-list" class="photos-list">
         <p class="placeholder">Carregando...</p>
       </div>
