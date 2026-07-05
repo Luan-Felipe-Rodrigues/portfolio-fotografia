@@ -134,6 +134,7 @@ function render(slug, data) {
 function renderEnsaio(e) {
   const dateStr = e.ensaio_date ? formatDate(e.ensaio_date) : '';
   const photos = e.photos || [];
+  const total = photos.length;
   return `
     <section class="ensaio-block" data-ensaio-id="${e.id}">
       <div class="ensaio-heading">
@@ -142,24 +143,25 @@ function renderEnsaio(e) {
       </div>
       ${e.description ? `<p class="ensaio-desc">${escapeHtml(e.description)}</p>` : ''}
       ${photos.length ? `
-        <div class="portal-grid">
-          ${photos.map((p) => renderThumb(p, e.id)).join('')}
+        <div class="portal-grid" role="list">
+          ${photos.map((p, i) => renderThumb(p, e.id, e.title, i + 1, total)).join('')}
         </div>
       ` : '<p class="portal-empty small">Sem fotos neste ensaio.</p>'}
     </section>
   `;
 }
 
-function renderThumb(p, ensaioId) {
+function renderThumb(p, ensaioId, ensaioTitle, position, total) {
   const badges = [
-    p.likes ? `<span class="thumb-badge liked">♥ ${p.likes}</span>` : '',
-    p.has_comment ? '<span class="thumb-badge">💬</span>' : '',
-    p.print_selected ? '<span class="thumb-badge">🖨</span>' : ''
+    p.likes ? `<span class="thumb-badge liked" aria-label="${p.likes} curtida${p.likes > 1 ? 's' : ''}">♥ ${p.likes}</span>` : '',
+    p.has_comment ? '<span class="thumb-badge" aria-label="Comentada">💬</span>' : '',
+    p.print_selected ? '<span class="thumb-badge" aria-label="Selecionada para impressão">🖨</span>' : ''
   ].filter(Boolean).join('');
+  const label = `Foto ${position} de ${total} — ${ensaioTitle}. Abrir em tela cheia.`;
   return `
-    <button type="button" class="portal-thumb" data-photo-id="${p.id}" data-ensaio-id="${ensaioId}" aria-label="Abrir foto">
+    <button type="button" class="portal-thumb" data-photo-id="${p.id}" data-ensaio-id="${ensaioId}" aria-label="${escapeHtml(label)}">
       <img src="${p.signed_url}" alt="" loading="lazy">
-      ${badges ? `<div class="thumb-badges">${badges}</div>` : ''}
+      ${badges ? `<div class="thumb-badges" aria-hidden="true">${badges}</div>` : ''}
     </button>
   `;
 }
@@ -177,12 +179,12 @@ function wireGridClicks(slug, allPhotos) {
 let lbIndex = 0;
 let lbPhotos = [];
 let lbSlug = null;
+let lbLastFocus = null;
 
 function wireLightbox(slug, allPhotos) {
   lbSlug = slug;
   lbPhotos = allPhotos;
   const lb = document.getElementById('lightbox');
-  const lbImg = document.getElementById('lb-img');
   const closeBtn = lb.querySelector('.lb-close');
   const prevBtn = lb.querySelector('.lb-prev');
   const nextBtn = lb.querySelector('.lb-next');
@@ -193,9 +195,10 @@ function wireLightbox(slug, allPhotos) {
 
   document.addEventListener('keydown', (e) => {
     if (lb.hidden) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') navigate(-1);
-    if (e.key === 'ArrowRight') navigate(1);
+    if (e.key === 'Escape') { closeLightbox(); return; }
+    if (e.key === 'ArrowLeft') { navigate(-1); return; }
+    if (e.key === 'ArrowRight') { navigate(1); return; }
+    if (e.key === 'Tab') trapFocus(e, lb);
   });
 
   // Swipe on mobile
@@ -222,10 +225,13 @@ function openLightbox(idx, slug, photos) {
   lbIndex = idx;
   lbPhotos = photos;
   lbSlug = slug;
+  lbLastFocus = document.activeElement;
   showCurrentPhoto();
   const lb = document.getElementById('lightbox');
   lb.hidden = false;
   document.body.style.overflow = 'hidden';
+  // Focus close button so keyboard users start inside the modal
+  requestAnimationFrame(() => lb.querySelector('.lb-close')?.focus());
 }
 
 function closeLightbox() {
@@ -234,6 +240,25 @@ function closeLightbox() {
   document.body.style.overflow = '';
   document.getElementById('lb-comment').hidden = true;
   document.getElementById('lb-share').hidden = true;
+  // Return focus to the thumb that opened the lightbox
+  if (lbLastFocus && typeof lbLastFocus.focus === 'function') lbLastFocus.focus();
+}
+
+function trapFocus(e, container) {
+  const focusables = container.querySelectorAll(
+    'button:not([hidden]):not([disabled]), textarea:not([hidden]):not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+  );
+  const visible = Array.from(focusables).filter((el) => el.offsetParent !== null || el.tagName === 'TEXTAREA');
+  if (!visible.length) return;
+  const first = visible[0];
+  const last = visible[visible.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 function navigate(dir) {
@@ -247,14 +272,19 @@ function showCurrentPhoto() {
   const p = lbPhotos[lbIndex];
   const lbImg = document.getElementById('lb-img');
   lbImg.src = p.signed_url;
-  lbImg.alt = '';
+  lbImg.alt = `Foto ${lbIndex + 1} de ${lbPhotos.length}`;
   const likeBtn = document.querySelector('.lb-action[data-kind="like"]');
   likeBtn.querySelector('.count').textContent = p.likes || 0;
   likeBtn.classList.toggle('active', hasLikedLocal(p.id));
+  likeBtn.setAttribute('aria-pressed', hasLikedLocal(p.id) ? 'true' : 'false');
   const printBtn = document.querySelector('.lb-action[data-kind="print_select"]');
-  printBtn.classList.toggle('active', p.print_selected);
+  printBtn.classList.toggle('active', !!p.print_selected);
+  printBtn.setAttribute('aria-pressed', p.print_selected ? 'true' : 'false');
   const commentBtn = document.querySelector('.lb-action[data-kind="comment"]');
-  commentBtn.classList.toggle('active', p.has_comment);
+  commentBtn.classList.toggle('active', !!p.has_comment);
+  commentBtn.setAttribute('aria-pressed', p.has_comment ? 'true' : 'false');
+  const lb = document.getElementById('lightbox');
+  lb.setAttribute('aria-label', `Foto ${lbIndex + 1} de ${lbPhotos.length}`);
 }
 
 async function handleLbAction(kind) {
@@ -398,6 +428,8 @@ function flashPortalToast(msg) {
   if (!t) {
     t = document.createElement('div');
     t.className = 'portal-toast';
+    t.setAttribute('role', 'status');
+    t.setAttribute('aria-live', 'polite');
     document.body.appendChild(t);
   }
   t.textContent = msg;

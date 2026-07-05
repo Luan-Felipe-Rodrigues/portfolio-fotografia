@@ -31,21 +31,37 @@ const supabase = createClient(
 const SIGNED_URL_TTL = 3600; // 1h
 const SLUG_RE = /^[a-zA-Z0-9]{20,40}$/;
 
-// Rate limit em memória (por instância). Suficiente pra prevenir enumeração
-// de slugs por brute force. Slug de 32 chars alfa-num = ~10^57 combinações,
-// então isso é defesa em profundidade.
-const RATE_WINDOW_MS = 60_000;
+// Rate limit persistente via RPC portal_rate_check (migração 0010). Sobrevive
+// cold starts do Deno. Fallback in-memory quando o RPC falha (defesa em
+// profundidade). Slug 20-40 chars alfa-num = ~10^30+ combinações, então isso
+// é defesa em profundidade, não a primeira barreira.
+const RATE_WINDOW_S = 60;
 const RATE_MAX = 20;
-const hits = new Map<string, number[]>();
+const memHits = new Map<string, number[]>();
 
-function isRateLimited(key: string): boolean {
-  const now = Date.now();
-  const prior = hits.get(key) || [];
-  const recent = prior.filter((t) => now - t < RATE_WINDOW_MS);
-  recent.push(now);
-  hits.set(key, recent);
-  if (hits.size > 5000) hits.clear();
-  return recent.length > RATE_MAX;
+async function isRateLimited(key: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('portal_rate_check', {
+      p_key: key,
+      p_window_seconds: RATE_WINDOW_S,
+      p_max_hits: RATE_MAX
+    });
+    if (error) throw error;
+    // Prune oportunístico: 1% dos requests dispara cleanup, sem bloquear.
+    if (Math.random() < 0.01) {
+      supabase.rpc('portal_rate_prune').then(() => {}, () => {});
+    }
+    return data === false;
+  } catch (err) {
+    console.error('rate check RPC failed, falling back to in-memory:', (err as Error).message);
+    const now = Date.now();
+    const prior = memHits.get(key) || [];
+    const recent = prior.filter((t) => now - t < RATE_WINDOW_S * 1000);
+    recent.push(now);
+    memHits.set(key, recent);
+    if (memHits.size > 5000) memHits.clear();
+    return recent.length > RATE_MAX;
+  }
 }
 
 const CORS = {
@@ -233,8 +249,8 @@ serve(async (req) => {
     return json({ error: 'bad type' }, 400);
   }
 
-  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
-  if (isRateLimited(`${ip}:${type}`)) {
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  if (await isRateLimited(`${ip}:${type}`)) {
     return json({ error: 'rate limited' }, 429);
   }
 
