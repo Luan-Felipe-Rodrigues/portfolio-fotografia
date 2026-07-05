@@ -1,5 +1,5 @@
 /*
- * quote-wizard.js — Sprint 4, D12 revisada 2026-07-05
+ * quote-wizard.js
  *
  * Modal multi-step disparado por [data-open-quote-wizard] em qualquer
  * página. Standalone: não colide com main.js nem client-portal.js.
@@ -7,10 +7,10 @@
  * 4 steps:
  *   S1  tipo de ensaio (uma escolha)
  *   S2  data + flexibilidade + local + duração
- *   S3  estilos (badges multi) + referências
- *   S4  contato + observações + LGPD + resumo com faixa estimada
+ *   S3  estilos (cards multi, com descrição amigável) + referências
+ *   S4  contato + observações + LGPD + resumo
  *
- * Pré-seleção contextual por tipo (D12 revisada — tabela no Spec).
+ * Pré-seleção contextual por tipo (mapa no Spec).
  * Estado persiste em sessionStorage (`lr_qw`) até enviar.
  * "Pular pra e-mail" no S1 fecha o modal e realça o mailto na página.
  */
@@ -40,13 +40,15 @@
       submit: 'Enviar solicitação',
       skip: 'Prefiro escrever por e-mail',
       required: 'Campo obrigatório',
+      empty: 'a definir',
+      recommendedBadge: 'sugestão',
       s1: {
         title: 'O que você quer fotografar?',
-        hint: 'Escolha o tipo mais próximo. Você pode detalhar depois.'
+        hint: 'Escolhe o que mais tem a ver. Dá pra detalhar melhor nos próximos passos.'
       },
       s2: {
         title: 'Quando e onde?',
-        hint: 'Se ainda não decidiu, tudo bem — marque flexível.',
+        hint: 'Se ainda não decidiu, tudo bem. Marca "sou flexível" e a gente combina.',
         date: 'Data preferida',
         dateOptional: 'opcional',
         flexible: 'Sou flexível',
@@ -56,14 +58,14 @@
       },
       s3: {
         title: 'Como você imagina?',
-        hint: 'Marque os estilos que combinam. Pré-seleções são só sugestão.',
+        hint: 'Marca o que combina. As em destaque foram meu palpite pra você.',
         stylesLabel: 'Estilos',
         refs: 'Referências',
-        refsHint: 'Links de Pinterest, Instagram ou descrição livre.'
+        refsHint: 'Cola links de Pinterest, Instagram, ou escreve o que te inspirou.'
       },
       s4: {
         title: 'Deixa eu te retornar',
-        hint: 'Respondo em até 48h. Sem spam, sem lista.',
+        hint: 'Te retorno logo logo.',
         name: 'Seu nome',
         email: 'E-mail',
         whatsapp: 'WhatsApp',
@@ -71,17 +73,15 @@
         extra: 'Alguma observação?',
         extraOptional: 'opcional',
         summaryTitle: 'Resumo',
-        estimate: 'Faixa de investimento estimada',
-        estimateNote: 'Estimativa; valor final depende de data, deslocamento e complexidade.',
         consentLabel: 'Concordo em compartilhar meus dados para receber a proposta. ',
         consentLink: 'Ver política de privacidade',
         finishTitle: 'Recebi seu pedido, obrigado!',
-        finishBody: 'Vou revisar com atenção e te responder em até 48h. Se preferir, me chame no WhatsApp: ',
+        finishBody: 'Vou olhar com carinho e te retorno logo. Se preferir falar agora, me chama no WhatsApp: ',
         finishClose: 'Fechar'
       },
       errors: {
-        network: 'Não consegui enviar agora. Tente de novo em instantes.',
-        rate: 'Muitas solicitações. Aguarde alguns instantes.'
+        network: 'Não consegui enviar agora. Tenta de novo em instantes.',
+        rate: 'Muita coisa acontecendo. Aguarda um pouquinho e tenta de novo.'
       }
     },
     en: {
@@ -92,33 +92,34 @@
       submit: 'Send request',
       skip: 'I prefer to write by email',
       required: 'Required',
-      s1: { title: 'What would you like to photograph?', hint: 'Pick the closest type. You can detail it later.' },
+      empty: 'to be defined',
+      recommendedBadge: 'suggestion',
+      s1: { title: 'What would you like to photograph?', hint: 'Pick the closest option. You can detail everything in the next steps.' },
       s2: {
         title: 'When and where?',
-        hint: "If you haven't decided yet, that's fine — mark as flexible.",
+        hint: "Haven't decided yet? All good. Just mark \"I'm flexible\" and we can figure it out together.",
         date: 'Preferred date', dateOptional: 'optional', flexible: "I'm flexible",
         location: 'Location or city', locationHint: 'e.g. São Paulo, Ilhabela, studio…',
         duration: 'Estimated duration (hours)'
       },
       s3: {
         title: 'How do you picture it?',
-        hint: 'Toggle styles that match. Pre-selections are just suggestions.',
-        stylesLabel: 'Styles', refs: 'References', refsHint: 'Pinterest, Instagram links or free description.'
+        hint: 'Toggle what fits. The highlighted ones are my guess for your session.',
+        stylesLabel: 'Styles', refs: 'References', refsHint: 'Drop Pinterest or Instagram links, or write what inspired you.'
       },
       s4: {
-        title: 'Let me follow up',
-        hint: 'I reply within 48h. No spam, no list.',
+        title: 'Let me get back to you',
+        hint: "I'll reply soon.",
         name: 'Your name', email: 'Email', whatsapp: 'WhatsApp', whatsappOptional: 'optional',
-        extra: 'Any other note?', extraOptional: 'optional',
-        summaryTitle: 'Summary', estimate: 'Estimated investment range',
-        estimateNote: 'Estimate; final price depends on date, travel, and complexity.',
+        extra: 'Anything else?', extraOptional: 'optional',
+        summaryTitle: 'Summary',
         consentLabel: 'I agree to share my data to receive the proposal. ',
         consentLink: 'See privacy policy',
         finishTitle: "Got it, thank you!",
-        finishBody: 'I will review it and reply within 48h. You can also reach me on WhatsApp: ',
+        finishBody: "I'll go through it and reply soon. If you'd rather talk now, message me on WhatsApp: ",
         finishClose: 'Close'
       },
-      errors: { network: "Couldn't send now. Please try again in a bit.", rate: 'Too many requests. Please wait a moment.' }
+      errors: { network: "Couldn't send now. Please try again in a bit.", rate: 'Too many requests right now. Give it a moment and try again.' }
     },
     es: {
       progress: (n) => `Paso ${n} de 4`,
@@ -128,107 +129,175 @@
       submit: 'Enviar solicitud',
       skip: 'Prefiero escribir por email',
       required: 'Obligatorio',
-      s1: { title: '¿Qué te gustaría fotografiar?', hint: 'Elige el tipo más cercano. Puedes detallar después.' },
+      empty: 'a definir',
+      recommendedBadge: 'sugerencia',
+      s1: { title: '¿Qué te gustaría fotografiar?', hint: 'Elige lo que más te encaja. Podés detallar todo en los próximos pasos.' },
       s2: {
         title: '¿Cuándo y dónde?',
-        hint: 'Si aún no decidiste, está bien — marca flexible.',
+        hint: 'Si aún no decidiste, no te preocupes. Marca "soy flexible" y lo vemos juntos.',
         date: 'Fecha preferida', dateOptional: 'opcional', flexible: 'Soy flexible',
         location: 'Lugar o ciudad', locationHint: 'Ej.: São Paulo, Ilhabela, estudio…',
         duration: 'Duración estimada (horas)'
       },
       s3: {
         title: '¿Cómo lo imaginas?',
-        hint: 'Marca los estilos que combinan. Preselecciones son sugerencias.',
-        stylesLabel: 'Estilos', refs: 'Referencias', refsHint: 'Pinterest, Instagram o descripción libre.'
+        hint: 'Marca lo que combina. Los destacados son mi sugerencia para vos.',
+        stylesLabel: 'Estilos', refs: 'Referencias', refsHint: 'Pega links de Pinterest, Instagram o cuenta qué te inspiró.'
       },
       s4: {
         title: 'Déjame responderte',
-        hint: 'Respondo en hasta 48h. Sin spam, sin lista.',
+        hint: 'Te respondo pronto.',
         name: 'Tu nombre', email: 'Email', whatsapp: 'WhatsApp', whatsappOptional: 'opcional',
-        extra: '¿Alguna observación?', extraOptional: 'opcional',
-        summaryTitle: 'Resumen', estimate: 'Rango estimado de inversión',
-        estimateNote: 'Estimación; el precio final depende de fecha, desplazamiento y complejidad.',
+        extra: '¿Algo más?', extraOptional: 'opcional',
+        summaryTitle: 'Resumen',
         consentLabel: 'Acepto compartir mis datos para recibir la propuesta. ',
         consentLink: 'Ver política de privacidad',
         finishTitle: '¡Recibí tu solicitud, gracias!',
-        finishBody: 'La revisaré y te responderé en hasta 48h. También puedes contactarme por WhatsApp: ',
+        finishBody: 'La miro con calma y te respondo pronto. Si prefieres hablar ahora, escríbeme por WhatsApp: ',
         finishClose: 'Cerrar'
       },
-      errors: { network: 'No pude enviar ahora. Intenta de nuevo en unos instantes.', rate: 'Demasiadas solicitudes. Espera un momento.' }
+      errors: { network: 'No pude enviar ahora. Intenta de nuevo en unos instantes.', rate: 'Demasiadas solicitudes ahora. Espera un momento y vuelve a intentar.' }
     }
   };
   const T = I18N[LANG];
 
-  // ---- Config por tipo (D12 revisada — Spec) ----------------------------
+  // ---- Config por tipo (mapa no Spec) ----------------------------------
   const TYPES = [
     {
       id: 'prewedding',
       title: { pt: 'Pre-Wedding', en: 'Pre-Wedding', es: 'Pre-Wedding' },
       desc: {
-        pt: 'Ensaio afetivo antes do casamento, ao ar livre.',
-        en: 'Engagement session, outdoors.',
-        es: 'Sesión de compromiso, al aire libre.'
+        pt: 'Ensaio afetivo antes do casamento, geralmente ao ar livre.',
+        en: 'Engagement session, usually outdoors.',
+        es: 'Sesión de compromiso, generalmente al aire libre.'
       },
       duration: 4,
       styles: ['cinematográfico', 'candid', 'natural'],
-      allStyles: ['cinematográfico', 'candid', 'natural', 'romântico', 'documental'],
-      estimate: 'R$ 1.500-2.800'
+      allStyles: ['cinematográfico', 'candid', 'natural', 'romântico', 'documental']
     },
     {
       id: 'autoral',
       title: { pt: 'Autoral', en: 'Personal', es: 'Autoral' },
       desc: {
-        pt: 'Ensaio artístico ou de retrato conceitual.',
+        pt: 'Ensaio artístico ou retrato conceitual.',
         en: 'Artistic or conceptual portrait session.',
         es: 'Sesión artística o retrato conceptual.'
       },
       duration: 2,
       styles: ['conceitual', 'minimalista', 'retrato'],
-      allStyles: ['conceitual', 'minimalista', 'retrato', 'preto e branco', 'editorial'],
-      estimate: 'R$ 800-1.800'
+      allStyles: ['conceitual', 'minimalista', 'retrato', 'preto e branco', 'editorial']
     },
     {
       id: 'eventos',
       title: { pt: 'Eventos', en: 'Events', es: 'Eventos' },
       desc: {
-        pt: 'Corporativo, casamento, festa — cobertura completa.',
-        en: 'Corporate, wedding, party — full coverage.',
-        es: 'Corporativo, boda, fiesta — cobertura completa.'
+        pt: 'Corporativo, casamento, festa. Cobertura completa.',
+        en: 'Corporate, wedding, party. Full coverage.',
+        es: 'Corporativo, boda, fiesta. Cobertura completa.'
       },
       duration: 6,
       styles: ['fotojornalismo', 'documental'],
-      allStyles: ['fotojornalismo', 'documental', 'posado', 'candid', 'preto e branco'],
-      estimate: 'R$ 2.500-6.000'
+      allStyles: ['fotojornalismo', 'documental', 'posado', 'candid', 'preto e branco']
     },
     {
       id: 'lugares',
       title: { pt: 'Lugares', en: 'Places', es: 'Lugares' },
       desc: {
-        pt: 'Viagem, paisagem, arquitetura — para você ou marca.',
-        en: 'Travel, landscape, architecture — for you or a brand.',
-        es: 'Viaje, paisaje, arquitectura — para ti o marca.'
+        pt: 'Viagem, paisagem, arquitetura, para você ou marca.',
+        en: 'Travel, landscape, architecture, for you or a brand.',
+        es: 'Viaje, paisaje, arquitectura, para ti o marca.'
       },
       duration: null,
       styles: ['paisagem', 'arquitetura'],
-      allStyles: ['paisagem', 'arquitetura', 'documental', 'preto e branco', 'aéreo'],
-      estimate: 'sob consulta'
+      allStyles: ['paisagem', 'arquitetura', 'documental', 'preto e branco', 'aéreo']
     },
     {
       id: 'outros',
       title: { pt: 'Outros', en: 'Other', es: 'Otros' },
       desc: {
-        pt: 'Descreva no próximo passo o que tem em mente.',
-        en: 'Describe what you have in mind in the next step.',
-        es: 'Describe en el próximo paso qué tienes en mente.'
+        pt: 'Me conta no próximo passo o que você tem em mente.',
+        en: 'Tell me in the next step what you have in mind.',
+        es: 'Cuéntame en el próximo paso qué tienes en mente.'
       },
       duration: null,
       styles: [],
-      allStyles: ['livre'],
-      estimate: 'sob consulta'
+      allStyles: ['livre']
     }
   ];
 
   const TYPE_BY_ID = new Map(TYPES.map((t) => [t.id, t]));
+
+  // ---- Descrições amigáveis dos estilos (S3) ---------------------------
+  const STYLE_META = {
+    'cinematográfico': {
+      label: { pt: 'Cinematográfico', en: 'Cinematic', es: 'Cinematográfico' },
+      hint:  { pt: 'Cara de cena de filme, luz trabalhada.', en: 'Movie-scene feel, worked light.', es: 'Parece escena de película.' }
+    },
+    'candid': {
+      label: { pt: 'Espontâneo', en: 'Candid', es: 'Espontáneo' },
+      hint:  { pt: 'Momento pego no ar, sem pose.', en: 'Caught in the moment, unposed.', es: 'Momento capturado, sin pose.' }
+    },
+    'natural': {
+      label: { pt: 'Natural', en: 'Natural', es: 'Natural' },
+      hint:  { pt: 'Luz do dia, cores da hora, nada forçado.', en: 'Daylight, real colors, nothing forced.', es: 'Luz del día, colores reales.' }
+    },
+    'romântico': {
+      label: { pt: 'Romântico', en: 'Romantic', es: 'Romántico' },
+      hint:  { pt: 'Foco no afeto entre vocês.', en: 'Focused on the affection between you.', es: 'Enfocado en el afecto entre ustedes.' }
+    },
+    'documental': {
+      label: { pt: 'Documental', en: 'Documentary', es: 'Documental' },
+      hint:  { pt: 'Como se eu tivesse acompanhando o dia.', en: 'Like I was tagging along.', es: 'Como si acompañara el día.' }
+    },
+    'conceitual': {
+      label: { pt: 'Conceitual', en: 'Conceptual', es: 'Conceptual' },
+      hint:  { pt: 'Uma foto com ideia por trás, mais artística.', en: 'Idea-driven, more artistic.', es: 'Con idea detrás, más artística.' }
+    },
+    'minimalista': {
+      label: { pt: 'Minimalista', en: 'Minimal', es: 'Minimalista' },
+      hint:  { pt: 'Poucos elementos, foco no essencial.', en: 'Few elements, focus on essence.', es: 'Pocos elementos, foco en lo esencial.' }
+    },
+    'retrato': {
+      label: { pt: 'Retrato', en: 'Portrait', es: 'Retrato' },
+      hint:  { pt: 'Foco em você, na sua expressão.', en: 'Focus on you and your expression.', es: 'Enfocado en ti y tu expresión.' }
+    },
+    'preto e branco': {
+      label: { pt: 'Preto e branco', en: 'Black and white', es: 'Blanco y negro' },
+      hint:  { pt: 'Sem cor, mais atemporal.', en: 'No color, more timeless.', es: 'Sin color, más atemporal.' }
+    },
+    'editorial': {
+      label: { pt: 'Editorial', en: 'Editorial', es: 'Editorial' },
+      hint:  { pt: 'Cara de revista, produção mais elaborada.', en: 'Magazine feel, more produced.', es: 'Estilo revista, más producido.' }
+    },
+    'fotojornalismo': {
+      label: { pt: 'Fotojornalismo', en: 'Photojournalism', es: 'Fotoperiodismo' },
+      hint:  { pt: 'Capturo tudo como se estivesse cobrindo uma matéria.', en: 'Full news-coverage feel.', es: 'Cobertura estilo periodístico.' }
+    },
+    'posado': {
+      label: { pt: 'Posado', en: 'Posed', es: 'Posado' },
+      hint:  { pt: 'Fotos preparadas, gente olhando pra câmera.', en: 'Prepared shots, camera-facing.', es: 'Fotos preparadas, mirando la cámara.' }
+    },
+    'paisagem': {
+      label: { pt: 'Paisagem', en: 'Landscape', es: 'Paisaje' },
+      hint:  { pt: 'O lugar como personagem principal.', en: 'Location as the main character.', es: 'El lugar como protagonista.' }
+    },
+    'arquitetura': {
+      label: { pt: 'Arquitetura', en: 'Architecture', es: 'Arquitectura' },
+      hint:  { pt: 'Linhas, formas, prédios.', en: 'Lines, shapes, buildings.', es: 'Líneas, formas, edificios.' }
+    },
+    'aéreo': {
+      label: { pt: 'Aéreo', en: 'Aerial', es: 'Aéreo' },
+      hint:  { pt: 'Vista de cima, com drone.', en: 'From above, with a drone.', es: 'Desde arriba, con drone.' }
+    },
+    'livre': {
+      label: { pt: 'Aberto a ideias', en: 'Open to ideas', es: 'Abierto a ideas' },
+      hint:  { pt: 'Sem estilo pré-definido. Vou pela sua visão.', en: 'No preset style. I follow your vision.', es: 'Sin estilo predefinido.' }
+    }
+  };
+
+  function styleMeta(id) {
+    return STYLE_META[id] || { label: { pt: id, en: id, es: id }, hint: { pt: '', en: '', es: '' } };
+  }
 
   // ---- State -----------------------------------------------------------
   const initialState = {
@@ -485,19 +554,25 @@
     const recommended = new Set(type ? type.styles : []);
     const all = type ? type.allStyles : [];
 
-    const badges = all.map((s) => {
+    const cards = all.map((s) => {
+      const meta = styleMeta(s);
       const selected = state.styles.includes(s) ? 'selected' : '';
       const rec = recommended.has(s) ? 'recommended' : '';
-      return `<button type="button" class="qw-badge ${selected} ${rec}" data-style="${escapeAttr(s)}" aria-pressed="${!!selected}">${escapeHtml(s)}</button>`;
+      const recBadge = rec ? `<span class="qw-choice-tag">${T.recommendedBadge}</span>` : '';
+      return `
+        <button type="button" class="qw-choice ${selected} ${rec}" data-style="${escapeAttr(s)}" aria-pressed="${!!selected}">
+          <span class="qw-choice-title">${escapeHtml(meta.label[LANG])}${recBadge}</span>
+          <span class="qw-choice-desc">${escapeHtml(meta.hint[LANG])}</span>
+        </button>
+      `;
     }).join('');
 
     body.innerHTML = `
       <h3>${T.s3.title}</h3>
       <p class="qw-hint">${T.s3.hint}</p>
 
-      <div class="qw-field">
-        <label class="qw-label">${T.s3.stylesLabel}</label>
-        <div class="qw-badges">${badges}</div>
+      <div class="qw-choices" role="group" aria-label="${T.s3.stylesLabel}">
+        ${cards}
       </div>
 
       <div class="qw-field">
@@ -505,7 +580,7 @@
         <textarea class="qw-textarea" id="qw-refs" maxlength="2000" placeholder="${T.s3.refsHint}">${escapeHtml(state.reference_notes || '')}</textarea>
       </div>
     `;
-    body.querySelectorAll('.qw-badge').forEach((b) => {
+    body.querySelectorAll('.qw-choice').forEach((b) => {
       b.addEventListener('click', () => {
         const s = b.dataset.style;
         const i = state.styles.indexOf(s);
@@ -520,12 +595,13 @@
 
   function renderS4(body) {
     const type = TYPE_BY_ID.get(state.ensaio_type);
+    const stylesLabels = state.styles.map((s) => styleMeta(s).label[LANG]).join(', ');
     const summaryRows = [
-      [T.s1.title.replace('?', '').trim(), type ? type.title[LANG] : '—'],
-      [T.s2.date.split(' ')[0], state.preferred_date ? formatDate(state.preferred_date) + (state.date_flexible ? ` (${T.s2.flexible.toLowerCase()})` : '') : '—'],
-      [T.s2.location.split(' ')[0], state.location || '—'],
-      [T.s2.duration.split(' ')[0], state.duration_hours ? `${state.duration_hours}h` : '—'],
-      [T.s3.stylesLabel, state.styles.length ? state.styles.join(', ') : '—']
+      [T.s1.title.replace('?', '').trim(), type ? type.title[LANG] : T.empty],
+      [T.s2.date.split(' ')[0], state.preferred_date ? formatDate(state.preferred_date) + (state.date_flexible ? ` (${T.s2.flexible.toLowerCase()})` : '') : T.empty],
+      [T.s2.location.split(' ')[0], state.location || T.empty],
+      [T.s2.duration.split(' ')[0], state.duration_hours ? `${state.duration_hours}h` : T.empty],
+      [T.s3.stylesLabel, stylesLabels || T.empty]
     ];
 
     body.innerHTML = `
@@ -552,18 +628,12 @@
         <textarea class="qw-textarea" id="qw-extra" maxlength="2000">${escapeHtml(state.extra_notes || '')}</textarea>
       </div>
 
-      <!-- Honeypot: bot preenche, humano nunca vê -->
       <input type="text" name="hp" tabindex="-1" autocomplete="off" class="qw-hp" aria-hidden="true">
 
       <div class="qw-summary" aria-label="${T.s4.summaryTitle}">
         <dl>
           ${summaryRows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd>`).join('')}
         </dl>
-        <div class="qw-estimate">
-          <span>${T.s4.estimate}</span>
-          <div class="qw-estimate-value">${escapeHtml(type ? type.estimate : '—')}</div>
-          <div class="qw-estimate-note">${T.s4.estimateNote}</div>
-        </div>
       </div>
 
       <label class="qw-checkbox">

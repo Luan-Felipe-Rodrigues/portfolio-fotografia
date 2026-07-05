@@ -83,7 +83,7 @@ function renderRow(q) {
     <a class="photo-row" href="./quote.html?id=${q.id}" style="text-decoration:none;color:inherit">
       <div class="client-avatar">${escapeHtml((q.contact_name || '?').charAt(0).toUpperCase())}</div>
       <div class="photo-meta">
-        <div class="photo-alt">${escapeHtml(q.contact_name)} — ${escapeHtml(type)}</div>
+        <div class="photo-alt">${escapeHtml(q.contact_name)} · ${escapeHtml(type)}</div>
         <div class="photo-tags">
           ${statusBadge}
           ${styleBadges}

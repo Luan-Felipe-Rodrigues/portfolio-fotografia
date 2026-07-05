@@ -51,11 +51,11 @@ async function load() {
 }
 
 function render(q, notes) {
-  const date = q.preferred_date ? new Date(q.preferred_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+  const date = q.preferred_date ? new Date(q.preferred_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'a definir';
   const receivedAt = new Date(q.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const styles = (q.styles || []).length ? q.styles.map((s) => `<span class="tag muted">${escapeHtml(s)}</span>`).join(' ') : '—';
+  const styles = (q.styles || []).length ? q.styles.map((s) => `<span class="tag muted">${escapeHtml(s)}</span>`).join(' ') : 'a definir';
 
-  const mailtoSubject = encodeURIComponent(`Sobre seu pedido — ${TYPE_LABELS[q.ensaio_type] || q.ensaio_type}`);
+  const mailtoSubject = encodeURIComponent(`Sobre seu pedido de ${TYPE_LABELS[q.ensaio_type] || q.ensaio_type}`);
   const mailtoBody = encodeURIComponent(`Oi ${q.contact_name.split(' ')[0]},\n\nRecebi seu pedido de cotação e quero conversar mais.\n\n[proposta]\n\nAbraço,\nLuan`);
 
   root.innerHTML = `
@@ -87,11 +87,11 @@ function render(q, notes) {
         <h3>Briefing</h3>
         <dl class="quote-dl">
           <dt>Data preferida</dt><dd>${date}${q.date_flexible ? ' (flexível)' : ''}</dd>
-          <dt>Local</dt><dd>${escapeHtml(q.location || '—')}</dd>
-          <dt>Duração</dt><dd>${q.duration_hours ? `${q.duration_hours}h` : '—'}</dd>
+          <dt>Local</dt><dd>${escapeHtml(q.location || 'a definir')}</dd>
+          <dt>Duração</dt><dd>${q.duration_hours ? `${q.duration_hours}h` : 'a definir'}</dd>
           <dt>Estilos</dt><dd>${styles}</dd>
-          <dt>Referências</dt><dd>${q.reference_notes ? `<pre style="white-space:pre-wrap;margin:0;font-family:inherit;">${escapeHtml(q.reference_notes)}</pre>` : '—'}</dd>
-          <dt>Observações</dt><dd>${q.extra_notes ? `<pre style="white-space:pre-wrap;margin:0;font-family:inherit;">${escapeHtml(q.extra_notes)}</pre>` : '—'}</dd>
+          <dt>Referências</dt><dd>${q.reference_notes ? `<pre style="white-space:pre-wrap;margin:0;font-family:inherit;">${escapeHtml(q.reference_notes)}</pre>` : 'a definir'}</dd>
+          <dt>Observações</dt><dd>${q.extra_notes ? `<pre style="white-space:pre-wrap;margin:0;font-family:inherit;">${escapeHtml(q.extra_notes)}</pre>` : 'a definir'}</dd>
         </dl>
       </section>
 

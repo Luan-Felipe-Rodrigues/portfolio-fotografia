@@ -1,10 +1,7 @@
-/* Quote Wizard — Sprint 4, D12 revisada 2026-07-05
-   Modal multi-step disparado da /contact.html. Pattern Trivaxion:
-   - Barra de progresso topo
-   - 4 steps: tipo → data/local/duração → estilo/refs → contato/LGPD/resumo
-   - Pré-seleção contextual por tipo
-   - Estado em sessionStorage
-   - Botão Pular (fecha modal, orienta e-mail)
+/* Quote Wizard
+   Modal multi-step disparado da /contact.html. Pattern estilo Trivaxion:
+   barra de progresso topo, 4 steps, pré-seleção contextual, sessionStorage,
+   botão pular no S1.
 */
 
 :root {
@@ -261,38 +258,23 @@
   line-height: 1.35;
 }
 
-/* Style badges (S3) */
-.qw-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.4rem 0 1rem;
-}
-
-.qw-badge {
-  background: transparent;
-  border: 1px solid var(--qw-border);
+.qw-choice-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
   border-radius: 999px;
-  padding: 6px 14px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  color: var(--qw-fg);
-  transition: border-color 120ms ease, background 120ms ease;
-}
-
-.qw-badge:hover { border-color: var(--qw-fg); }
-
-.qw-badge.selected {
-  background: var(--qw-fg);
-  color: var(--qw-bg);
-  border-color: var(--qw-fg);
-}
-
-.qw-badge.recommended::before {
-  content: '★ ';
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
   opacity: 0.6;
-  font-size: 0.75rem;
+}
+
+.qw-choice.selected .qw-choice-tag {
+  opacity: 0.75;
+  border-color: currentColor;
 }
 
 /* Checkbox (LGPD) */
@@ -335,26 +317,6 @@
 
 .qw-summary dt { color: var(--qw-muted); }
 .qw-summary dd { margin: 0; color: var(--qw-fg); }
-
-.qw-estimate {
-  margin-top: 0.9rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--qw-border);
-  font-size: 0.85rem;
-}
-
-.qw-estimate .qw-estimate-value {
-  font-size: 1.15rem;
-  font-weight: 400;
-  color: var(--qw-fg);
-  margin-top: 0.15rem;
-}
-
-.qw-estimate .qw-estimate-note {
-  color: var(--qw-muted);
-  font-size: 0.75rem;
-  margin-top: 0.3rem;
-}
 
 /* Footer nav */
 .qw-footer {
@@ -428,7 +390,6 @@
 
 /* Focus outlines */
 .qw-choice:focus-visible,
-.qw-badge:focus-visible,
 .qw-btn:focus-visible,
 .qw-close:focus-visible,
 .qw-input:focus-visible,

@@ -1,9 +1,9 @@
--- Sprint 4 — Cotação
+-- Sprint 4: Cotação
 --
 -- Wizard modal multi-step (D12 revisada 2026-07-05) dispara insert em
 -- `quote_requests`. Admin gerencia via `/admin/quotes.html`. Rate limit
 -- reusa `portal_rate_hits` da migração 0010 (mesmo pool de rate limit
--- para todo endpoint anon do site — coerente).
+-- para todo endpoint anon do site (coerente).
 
 create type public.quote_status as enum (
   'nova',

@@ -20,7 +20,7 @@
 //     contact_whatsapp?: string,
 //     consent_given: true,
 //     wizard_language?: 'pt' | 'en' | 'es',
-//     hp?: string   // honeypot — se preenchido, silenciosamente 200 sem gravar
+//     hp?: string   // honeypot: se preenchido, silenciosamente 200 sem gravar
 //   }
 //
 // Retorno:
@@ -89,7 +89,7 @@ async function isRateLimited(key: string): Promise<boolean> {
 
 async function sendEmails(rec: Record<string, unknown>, id: string) {
   if (!RESEND_API_KEY) {
-    console.log('RESEND_API_KEY ausente — pulando envio de emails, cotação gravada:', id);
+    console.log('RESEND_API_KEY ausente, pulando envio de emails. Cotação gravada:', id);
     return;
   }
   const name = String(rec.contact_name);
@@ -107,7 +107,7 @@ async function sendEmails(rec: Record<string, unknown>, id: string) {
   const clientPayload = {
     from: FROM_ADDRESS,
     to: [email],
-    subject: 'Recebi seu pedido de cotação — Luan Rodrigues Fotografia',
+    subject: 'Recebi seu pedido de cotação',
     text: `Oi ${name.split(' ')[0]},\n\nRecebi seu interesse em um ensaio ${humanType}. Vou revisar com carinho e te respondo em até 48h com uma proposta.\n\nSe precisar de algo antes, me chama no WhatsApp: https://wa.me/5511998493113\n\nAbraço,\nLuan`
   };
 
@@ -115,7 +115,7 @@ async function sendEmails(rec: Record<string, unknown>, id: string) {
   const luanPayload = {
     from: FROM_ADDRESS,
     to: [NOTIFY_TO],
-    subject: `Nova cotação: ${humanType} — ${name}`,
+    subject: `Nova cotação de ${humanType}: ${name}`,
     text: [
       `Nova solicitação de cotação (id ${id})`,
       '',

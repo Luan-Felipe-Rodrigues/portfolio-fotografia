@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * quote-wizard-e2e.js — Sprint 4 (D12 revisada 2026-07-05)
+ * quote-wizard-e2e.js:Sprint 4 (D12 revisada 2026-07-05)
  *
  * E2E completo do modal wizard de cotação. Roda contra qualquer BASE_URL
  * (localhost, prod). Percorre 4 steps, submete, valida row no DB e limpa.
@@ -90,7 +90,7 @@ async function main() {
     await page.click('#qw-footer-right .qw-btn');
     await new Promise((r) => setTimeout(r, 200));
 
-    // 4. S2 — verify pre-fill ----------------------------------------------
+    // 4. S2:verify pre-fill ----------------------------------------------
     const s2 = await page.evaluate(() => ({
       title: document.querySelector('#qw-body h3')?.textContent,
       prefilledDur: document.querySelector('#qw-dur')?.value,
@@ -106,26 +106,33 @@ async function main() {
     await page.click('#qw-footer-right .qw-btn');
     await new Promise((r) => setTimeout(r, 200));
 
-    // 5. S3 — verify recommended badges pre-selected ----------------------
-    const s3 = await page.evaluate(() => ({
-      selected: document.querySelectorAll('.qw-badge.selected').length,
-      recommended: document.querySelectorAll('.qw-badge.recommended').length,
-      total: document.querySelectorAll('.qw-badge').length
-    }));
+    // 5. S3:verify recommended cards pre-selected -----------------------
+    const s3 = await page.evaluate(() => {
+      const cards = document.querySelectorAll('#qw-body .qw-choice');
+      return {
+        selected: document.querySelectorAll('#qw-body .qw-choice.selected').length,
+        recommended: document.querySelectorAll('#qw-body .qw-choice.recommended').length,
+        total: cards.length,
+        firstHasDesc: !!cards[0]?.querySelector('.qw-choice-desc')?.textContent
+      };
+    });
     step('S3 pré-seleciona recomendados', s3.selected === 3 && s3.recommended === 3, `${s3.selected}/${s3.total} selected, ${s3.recommended} recommended`);
+    step('S3 cards têm descrição', s3.firstHasDesc, '');
 
     // Add reference notes
     await page.type('#qw-refs', 'Ref: https://pinterest.com/exemplo');
     await page.click('#qw-footer-right .qw-btn');
     await new Promise((r) => setTimeout(r, 200));
 
-    // 6. S4 — summary + estimate + validation ------------------------------
+    // 6. S4:summary + validation ----------------------------------------
     const s4 = await page.evaluate(() => ({
       title: document.querySelector('#qw-body h3')?.textContent,
-      estimate: document.querySelector('.qw-estimate-value')?.textContent,
+      summaryHasStyles: document.querySelector('.qw-summary dl')?.textContent.includes('Cinematográfico'),
+      hasEstimate: !!document.querySelector('.qw-estimate'),
       submitDisabled: document.querySelector('#qw-footer-right .qw-btn')?.disabled
     }));
-    step('S4 mostra faixa estimada', /R\$/.test(s4.estimate || ''), s4.estimate);
+    step('S4 sem bloco de faixa estimada', !s4.hasEstimate, '');
+    step('S4 resumo tem estilos com label', s4.summaryHasStyles, '');
     step('Submit disabled sem consent', s4.submitDisabled, '');
 
     // Fill contact + consent
