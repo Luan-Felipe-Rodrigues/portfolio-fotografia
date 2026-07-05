@@ -171,10 +171,8 @@ function initHomeGalleryStatic(top, bottom) {
   initScrollReveal();
 }
 
-/* --- Footer privacy note (LGPD-friendly reassurance) --- */
+/* --- Footer privacy note (LGPD-friendly reassurance) + Admin link --- */
 function initFooterNote() {
-  const footers = document.querySelectorAll('footer');
-  if (!footers.length) return;
   const locale = (window.LR_DYNAMIC && window.LR_DYNAMIC.locale) ? window.LR_DYNAMIC.locale() :
     (window.location.pathname.startsWith('/en/') ? 'en' :
      window.location.pathname.startsWith('/es/') ? 'es' : 'pt');
@@ -183,15 +181,30 @@ function initFooterNote() {
     en: 'No cookies, no personal tracking — anonymous visit counts only.',
     es: 'Sin cookies, sin tracking personal — solo conteo anónimo de visitas.'
   };
+  const COPYRIGHT = '© 2026 Luan Rodrigues';
+
+  // Pages that don't have a <footer> tag (home, portfolio, some
+  // localized indexes). Create one at end of body so every page ends
+  // with the privacy note + discrete Admin link.
+  let footers = document.querySelectorAll('footer');
+  if (!footers.length) {
+    const f = document.createElement('footer');
+    const cp = document.createElement('p');
+    cp.textContent = COPYRIGHT;
+    f.appendChild(cp);
+    document.body.appendChild(f);
+    footers = [f];
+  }
+
+  const prefix = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/') ? '../' : './';
   footers.forEach((f) => {
-    if (f.querySelector('.footer-note')) return;
-    const p = document.createElement('p');
-    p.className = 'footer-note';
-    p.textContent = NOTE[locale] || NOTE.pt;
-    f.appendChild(p);
-    // Discrete admin link — small, muted, right there for the owner.
+    if (!f.querySelector('.footer-note')) {
+      const p = document.createElement('p');
+      p.className = 'footer-note';
+      p.textContent = NOTE[locale] || NOTE.pt;
+      f.appendChild(p);
+    }
     if (!f.querySelector('.footer-admin')) {
-      const prefix = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/') ? '../' : './';
       const a = document.createElement('a');
       a.className = 'footer-admin';
       a.href = prefix + 'admin/';
