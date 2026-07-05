@@ -130,15 +130,33 @@ function renderByCollection(collections, photos) {
     return;
   }
 
-  el.innerHTML = rows.map((c) => `
-    <div class="collection-row ${c.parent_slug ? 'nested' : ''}">
+  // Interleave: for each top-level row, render it and then all its
+  // children in order. Previously the query dumped all subs after Lugares
+  // regardless of parent, breaking the visual hierarchy.
+  const topLevels = rows.filter((c) => !c.parent_slug);
+  const childrenBySlug = new Map();
+  for (const c of rows) {
+    if (!c.parent_slug) continue;
+    if (!childrenBySlug.has(c.parent_slug)) childrenBySlug.set(c.parent_slug, []);
+    childrenBySlug.get(c.parent_slug).push(c);
+  }
+  function renderRow(c, nested) {
+    return `
+    <div class="collection-row ${nested ? 'nested' : ''}">
       <div class="collection-name">${escapeHtml(c.name_pt)}</div>
       <div class="collection-bar" title="${c.count} foto(s)">
         <div class="collection-fill" style="width: ${(c.count / max * 100).toFixed(0)}%"></div>
       </div>
       <div class="collection-count">${c.count}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }
+  const html = [];
+  for (const parent of topLevels) {
+    html.push(renderRow(parent, false));
+    const kids = childrenBySlug.get(parent.slug) || [];
+    for (const kid of kids) html.push(renderRow(kid, true));
+  }
+  el.innerHTML = html.join('');
 }
 
 function renderRecent(recent) {

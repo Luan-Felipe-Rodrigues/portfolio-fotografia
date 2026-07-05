@@ -20,6 +20,19 @@
 
   const INGEST_URL = 'https://junfgutjyicdrvpoyuzz.supabase.co/functions/v1/ingest';
   const SESSION_KEY = 'lr_session_v1';
+  const NO_TRACK_KEY = 'lr_no_track';
+
+  // Opt-out mechanism. Admin visits set this flag automatically (in
+  // admin/js/admin-shell.js) so Luan's own browsing never inflates the
+  // counters. ?no_track=1 in the URL sets it manually on any browser.
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('no_track') === '1') localStorage.setItem(NO_TRACK_KEY, '1');
+    if (q.get('no_track') === '0') localStorage.removeItem(NO_TRACK_KEY);
+  } catch { /* noop */ }
+  function isOptedOut() {
+    try { return localStorage.getItem(NO_TRACK_KEY) === '1'; } catch { return false; }
+  }
 
   function getSessionId() {
     let id = sessionStorage.getItem(SESSION_KEY);
@@ -38,6 +51,7 @@
   }
 
   function send(payload) {
+    if (isOptedOut()) return;
     // fetch(keepalive) is more reliable than sendBeacon here: sendBeacon
     // with an application/json Blob triggers CORS quirks in Chromium that
     // fail the request even when the Edge Function replies to OPTIONS with

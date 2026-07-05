@@ -30,6 +30,10 @@ export async function requireAdmin() {
     window.location.replace('./login.html');
     return null;
   }
+  // Mark this browser as opted-out from analytics — so Luan's own admin
+  // and site browsing don't inflate the counters. Idempotent, no-op if
+  // already set. Same origin as the public site, localStorage is shared.
+  try { localStorage.setItem('lr_no_track', '1'); } catch { /* noop */ }
   return session;
 }
 

@@ -618,10 +618,29 @@ a { color: var(--fg); }
   font-size: 13px;
 }
 
+.collection-row.nested {
+  position: relative;
+}
+
 .collection-row.nested .collection-name {
-  padding-left: 1rem;
+  padding-left: 1.75rem;
   color: var(--muted);
   font-size: 12px;
+  position: relative;
+}
+
+.collection-row.nested .collection-name::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  width: 0.75rem;
+  height: 1px;
+  background: var(--border);
+}
+
+.collection-row.nested .collection-fill {
+  background: var(--muted);
 }
 
 .collection-name { color: var(--fg); }

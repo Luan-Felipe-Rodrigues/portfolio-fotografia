@@ -1478,6 +1478,22 @@ footer p.footer-note {
   opacity: 0.7;
 }
 
+footer a.footer-admin {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.6rem;
+  color: var(--text-lighter);
+  opacity: 0.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: opacity 120ms ease;
+}
+
+footer a.footer-admin:hover {
+  opacity: 0.9;
+}
+
 /* --- Scroll reveal --- */
 .reveal {
   opacity: 0;

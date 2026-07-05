@@ -189,6 +189,16 @@ function initFooterNote() {
     p.className = 'footer-note';
     p.textContent = NOTE[locale] || NOTE.pt;
     f.appendChild(p);
+    // Discrete admin link — small, muted, right there for the owner.
+    if (!f.querySelector('.footer-admin')) {
+      const prefix = window.location.pathname.includes('/en/') || window.location.pathname.includes('/es/') ? '../' : './';
+      const a = document.createElement('a');
+      a.className = 'footer-admin';
+      a.href = prefix + 'admin/';
+      a.textContent = 'Admin';
+      a.rel = 'nofollow';
+      f.appendChild(a);
+    }
   });
 }
 
