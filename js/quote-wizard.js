@@ -28,6 +28,8 @@
     return 'pt';
   })();
 
+  const PRIVACY_URL = LANG === 'en' ? '/en/privacy.html' : LANG === 'es' ? '/es/privacidad.html' : '/privacidade.html';
+
   // ---- Copy pt/en/es ----------------------------------------------------
   const I18N = {
     pt: {
@@ -566,7 +568,7 @@
 
       <label class="qw-checkbox">
         <input type="checkbox" id="qw-consent" ${state.consent_given ? 'checked' : ''} required>
-        <span>${T.s4.consentLabel}<a href="/privacidade.html" target="_blank" rel="noopener">${T.s4.consentLink}</a></span>
+        <span>${T.s4.consentLabel}<a href="${PRIVACY_URL}" target="_blank" rel="noopener">${T.s4.consentLink}</a></span>
       </label>
     `;
     body.querySelector('#qw-name').addEventListener('input', (e) => { state.contact_name = e.target.value; save(); refreshButtons(); });
