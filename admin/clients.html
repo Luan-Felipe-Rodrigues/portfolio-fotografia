@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Clientes - Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <div id="admin-shell-header"></div>
+
+    <section class="page-toolbar">
+      <div class="segmented" id="view-toggle" role="tablist">
+        <button type="button" data-view="active" class="active" role="tab" aria-selected="true">Ativos</button>
+        <button type="button" data-view="archived" role="tab" aria-selected="false">Arquivados</button>
+      </div>
+      <button class="button" id="new-client-btn">Novo cliente</button>
+    </section>
+
+    <div id="clients-list" class="photos-list">
+      <p class="placeholder">Carregando...</p>
+    </div>
+  </main>
+
+  <script type="module" src="./js/clients-list.js"></script>
+</body>
+</html>
