@@ -121,6 +121,7 @@ When you add a new table (`photo_comments`, `contact_submissions`, …):
 | 0006  | `0006_storage_photos.sql`             | Storage bucket `photos` (public read via CDN); write policies gated by `current_user_is_admin()` |
 | 0007  | `0007_photos_archive.sql`             | `photos.is_archived` column; tighter anon read policy; `set_photo_archived()` RPC |
 | 0008  | `0008_analytics.sql`                  | `sessions`, `page_views`, `photo_views` tables (own-your-data analytics). Writes only via Edge Function `ingest` with service role; reads only for authenticated admin |
+| 0009  | `0009_client_portal.sql`              | Portal do Cliente (Sprint 6): `clients`, `client_ensaios`, `client_photos`, `client_actions` + enum + bucket privado `client-photos`. Anon acessa apenas via Edge Function `client-portal` que valida slug |
 
 ## Backup
 
