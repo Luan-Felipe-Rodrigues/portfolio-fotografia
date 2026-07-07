@@ -45,18 +45,29 @@
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/admin/callback.html`,
-          shouldCreateUser: true
+          shouldCreateUser: false
         }
       });
 
       if (error) {
-        status.textContent = `Erro: ${error.message}`;
+        const code = error.code || '';
+        const msg = (error.message || '').toLowerCase();
+        const isUnknownUser =
+          code === 'otp_disabled' ||
+          code === 'user_not_found' ||
+          code === 'signup_disabled' ||
+          msg.includes('signups not allowed') ||
+          msg.includes('not allowed for otp') ||
+          msg.includes('user not found');
+        status.textContent = isUnknownUser
+          ? 'E-mail não autorizado. Use a conta de admin cadastrada.'
+          : `Erro: ${error.message}`;
         status.classList.add('error');
         button.disabled = false;
         return;
       }
 
-      status.textContent = 'Link enviado. Confira seu e-mail.';
+      status.textContent = 'Link enviado. Confira seu e-mail no mesmo navegador.';
       form.querySelector('input[type="email"]').disabled = true;
     });
   </script>
