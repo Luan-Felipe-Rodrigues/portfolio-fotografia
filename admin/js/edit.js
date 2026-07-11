@@ -1,5 +1,5 @@
 import { supabase } from './supabase-client.js';
-import { requireAdmin, renderShell, imgUrl } from './admin-shell.js';
+import { requireAdmin, renderShell, imgUrl, STORAGE_OBJECT } from './admin-shell.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -33,6 +33,9 @@ try {
 
 function render(p, cols) {
   const preview = imgUrl(p.storage_path, { width: 1200, quality: 82 });
+  const baseName = (p.storage_path.split('/').pop() || 'foto').replace(/\.[^.]+$/, '');
+  const downloadName = `${baseName}.jpg`;
+  const downloadUrl = `${STORAGE_OBJECT}/${p.storage_path}?download=${encodeURIComponent(downloadName)}`;
 
   contentEl.innerHTML = `
     <div class="edit-layout">
@@ -40,6 +43,7 @@ function render(p, cols) {
         <img src="${preview}" alt="${escapeHtml(p.alt_pt || '')}">
         <p class="dims muted">${p.width} × ${p.height} px</p>
         <p class="dims muted">Storage: <code>${escapeHtml(p.storage_path)}</code></p>
+        <p><a class="button ghost" href="${downloadUrl}" download="${escapeAttr(downloadName)}">Baixar JPEG</a></p>
       </div>
 
       <form id="edit-form" class="edit-form">
