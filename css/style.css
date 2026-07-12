@@ -1497,8 +1497,8 @@ footer a.footer-admin:hover {
 /* --- Scroll reveal --- */
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.8s var(--transition), transform 0.8s var(--transition);
+  transform: translateY(14px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal.visible {

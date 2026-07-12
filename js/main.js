@@ -837,14 +837,26 @@ function initImageLoading() {
 
 /* --- Scroll Reveal --- */
 function initScrollReveal() {
-  const elements = document.querySelectorAll('.reveal');
+  const elements = document.querySelectorAll('.reveal:not(.visible)');
 
   if ('IntersectionObserver' in window) {
+    let queue = [];
+    let flushTimer = null;
+
+    function flush() {
+      queue.forEach((el, i) => {
+        setTimeout(() => el.classList.add('visible'), i * 90);
+      });
+      queue = [];
+      flushTimer = null;
+    }
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+          queue.push(entry.target);
           observer.unobserve(entry.target);
+          if (!flushTimer) flushTimer = setTimeout(flush, 40);
         }
       });
     }, { threshold: 0.1 });
@@ -1094,7 +1106,7 @@ function initScrollVideo() {
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 0.5,
+        scrub: 0.3,
       },
     });
   }
