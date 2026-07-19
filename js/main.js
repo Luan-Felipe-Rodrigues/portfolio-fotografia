@@ -454,6 +454,10 @@ async function renderGroupedSeries(parentSlug) {
 
 async function renderEventosSeries() {
   const result = await window.LR_DYNAMIC.fetchByCollectionSlug('eventos');
+  // Guard: se o banco ainda não tem fotos de eventos (migração pendente),
+  // preserva o HTML estático como fallback. Sem esse guard a coleção vazia
+  // apagaria as sections e deixaria a pagina em branco.
+  if (!result.photos.length) return;
   const byYear = new Map();
   for (const p of result.photos) {
     const year = p.taken_at ? p.taken_at.slice(0, 4) : 'sem-data';
@@ -905,6 +909,7 @@ function initLightbox() {
         .filter(i => i.src || i.dataset.src || i.dataset.fullSrc)
         .map(i => ({
           src: i.dataset.fullSrc || i.src || i.dataset.src,
+          alt: i.alt || '',
           photoId: i.dataset.photoId || null
         }));
 
@@ -922,6 +927,7 @@ function initLightbox() {
     const item = currentImages[currentIndex];
     if (item) {
       lightboxImg.src = item.src;
+      lightboxImg.alt = item.alt || '';
       if (item.photoId) lightboxImg.dataset.photoId = item.photoId;
       else delete lightboxImg.dataset.photoId;
       counter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
