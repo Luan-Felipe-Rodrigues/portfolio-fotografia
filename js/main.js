@@ -2,6 +2,34 @@
    Luan Rodrigues Portfolio JS
    ========================================================================== */
 
+// WCAG 2.4.1 Bypass Blocks: skip link como primeiro tab-stop. Injetado por
+// JS pra evitar duplicar HTML em 34 paginas legado. Portavel 1:1 pra Astro
+// (vira componente <SkipLink> no <Layout>).
+(function injectSkipLink() {
+  if (document.querySelector('.skip-link')) return;
+  const lang = (document.documentElement.lang || 'pt-BR').toLowerCase();
+  const label = lang.startsWith('en') ? 'Skip to content'
+              : lang.startsWith('es') ? 'Saltar al contenido'
+              : 'Pular para o conteúdo';
+  const link = document.createElement('a');
+  link.href = '#main-content';
+  link.className = 'skip-link';
+  link.textContent = label;
+  document.body.insertBefore(link, document.body.firstChild);
+  // Garante um alvo: primeiro <main>, senao primeira <section> semantica.
+  if (!document.getElementById('main-content')) {
+    const target = document.querySelector('main, section');
+    if (target && !target.id) target.id = 'main-content';
+    else if (target) {
+      // Alvo ja tem id (ex: home-showcase). Cria wrapper invisivel adjacente.
+      const anchor = document.createElement('span');
+      anchor.id = 'main-content';
+      anchor.tabIndex = -1;
+      target.parentNode.insertBefore(anchor, target);
+    }
+  }
+})();
+
 // Load the likes module on every page (no-op on pages without a lightbox).
 // Done once at script eval time so DOMContentLoaded handlers can rely on it.
 (function loadLikes() {

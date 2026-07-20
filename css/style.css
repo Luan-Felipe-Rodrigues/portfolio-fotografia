@@ -58,6 +58,23 @@ img {
   border-radius: 2px;
 }
 
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 16px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  z-index: 10001;
+  transition: top 0.15s var(--transition);
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
 /* --- Typography --- */
 h1 {
   font-size: clamp(2rem, 5vw, 3.5rem);
