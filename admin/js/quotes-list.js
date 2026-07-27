@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell } from './admin-shell.js';
+import { escapeHtml } from './shared.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -95,9 +96,6 @@ function renderRow(q) {
   `;
 }
 
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 // Mark "all quotes" as seen when hitting the list
 localStorage.setItem('lr_admin_last_seen:__quotes__', new Date().toISOString());

@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell } from './admin-shell.js';
+import { escapeHtml } from './shared.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -144,9 +145,6 @@ function getLastSeen(key) {
   return raw ? new Date(raw) : new Date(0);
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 // Mark "all clients" as seen when hitting the list
 localStorage.setItem('lr_admin_last_seen:__all__', new Date().toISOString());

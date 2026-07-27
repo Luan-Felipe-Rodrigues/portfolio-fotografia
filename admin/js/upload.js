@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell, loadCollectionsForSelect } from './admin-shell.js';
+import { escapeHtml } from './shared.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -191,6 +192,3 @@ function extOf(file) {
   return parts.length > 1 ? parts.pop().replace(/[^a-z0-9]/g, '') : 'bin';
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}

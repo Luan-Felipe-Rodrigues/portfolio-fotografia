@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell } from './admin-shell.js';
+import { escapeHtml } from './shared.js';
 
 const STORAGE_BASE = 'https://junfgutjyicdrvpoyuzz.supabase.co/storage/v1';
 
@@ -284,6 +285,3 @@ async function createNewEnsaio() {
   await load();
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}

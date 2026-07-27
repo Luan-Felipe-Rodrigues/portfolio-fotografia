@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell, imgUrl, STORAGE_OBJECT } from './admin-shell.js';
+import { escapeHtml, escapeAttr } from './shared.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -158,9 +159,3 @@ function render(p, cols) {
   });
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-function escapeAttr(s) {
-  return escapeHtml(s);
-}

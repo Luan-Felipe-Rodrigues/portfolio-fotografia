@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell, imgUrl } from './admin-shell.js';
+import { escapeHtml } from './shared.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -69,9 +70,6 @@ async function loadQuotes() {
   }
 }
 
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 async function loadTraffic() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();

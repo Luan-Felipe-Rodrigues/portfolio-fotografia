@@ -1,5 +1,6 @@
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell } from './admin-shell.js';
+import { escapeHtml } from './shared.js';
 
 const session = await requireAdmin();
 if (!session) throw new Error('no session');
@@ -137,8 +138,5 @@ function digitsOnly(s) {
   return String(s).replace(/[^\d]/g, '');
 }
 
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 await load();
