@@ -35,6 +35,8 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
+import { validateSchedule } from './validation.mjs';
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -82,15 +84,13 @@ async function isRateLimited(key: string): Promise<boolean> {
     return data === false;
   } catch (err) {
     console.error('quote rate check failed:', (err as Error).message);
-    // Fail-open pra não bloquear cliente honesto se RPC quebrar
-    return false;
+    return true;
   }
 }
 
 async function sendEmails(rec: Record<string, unknown>, id: string) {
   if (!RESEND_API_KEY) {
-    console.log('RESEND_API_KEY ausente, pulando envio de emails. Cotação gravada:', id);
-    return;
+    return 'not_configured';
   }
   const name = String(rec.contact_name);
   const email = String(rec.contact_email);
@@ -110,6 +110,10 @@ async function sendEmails(rec: Record<string, unknown>, id: string) {
     subject: 'Recebi seu pedido de cotação',
     text: `Oi ${name.split(' ')[0]},\n\nRecebi seu interesse em um ensaio ${humanType}. Vou revisar com carinho e te respondo em até 48h com uma proposta.\n\nSe precisar de algo antes, me chama no WhatsApp: https://wa.me/5511998493113\n\nAbraço,\nLuan`
   };
+
+  const lang = String(rec.wizard_language);
+  if(lang==='en'){clientPayload.subject='Your photography request has been received';clientPayload.text=`Hi ${name.split(' ')[0]},\n\nYour request has been saved. I will reply within 48 hours.\n\nWhatsApp: https://wa.me/5511998493113\n\nLuan`;}
+  if(lang==='es'){clientPayload.subject='He recibido tu solicitud de presupuesto';clientPayload.text=`Hola ${name.split(' ')[0]},\n\nTu solicitud se ha guardado. Te responderé en un plazo de 48 horas.\n\nWhatsApp: https://wa.me/5511998493113\n\nLuan`;}
 
   // Notificação interna
   const luanPayload = {
@@ -135,19 +139,21 @@ async function sendEmails(rec: Record<string, unknown>, id: string) {
     ].filter(Boolean).join('\n')
   };
 
-  const send = async (payload: Record<string, unknown>) => {
+  const send = async (payload: Record<string, unknown>, recipient: string) => {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'Idempotency-Key': `quote-${id}-${recipient}`
       },
+      signal: AbortSignal.timeout(8000),
       body: JSON.stringify(payload)
     });
-    if (!res.ok) console.error('Resend send failed:', res.status, await res.text());
+    if (!res.ok) throw new Error(`Email provider HTTP ${res.status}`);
   };
-  // Fire-and-forget both (best-effort). Grava-se sempre; email é acessório.
-  await Promise.allSettled([send(clientPayload), send(luanPayload)]);
+  const results=await Promise.allSettled([send(clientPayload,'client'), send(luanPayload,'owner')]);
+  return results.every(r=>r.status==='fulfilled')?'sent':'failed';
 }
 
 serve(async (req) => {
@@ -161,10 +167,27 @@ serve(async (req) => {
     return json({ error: 'bad_json' }, 400);
   }
 
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return json({error:'validation'},400);
+  if (JSON.stringify(body).length>16000) return json({error:'payload_too_large'},413);
+
+  if(body.action==='retry_email'){
+    const token=req.headers.get('authorization')||'';
+    const caller=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:token}},auth:{persistSession:false}});
+    const {data:quote,error}=await caller.from('quote_requests').select('*').eq('id',body.id).maybeSingle();
+    if(error||!quote)return json({error:'forbidden'},403);
+    if(quote.email_status==='sent')return json({id:quote.id,email_status:'sent'});
+    const email_status=await sendEmails(quote,quote.id).catch(()=>'failed');
+    await supabase.from('quote_requests').update({email_status,email_sent_at:email_status==='sent'?new Date().toISOString():null,email_error:email_status==='failed'?'Provider request failed':null}).eq('id',quote.id);
+    return json({id:quote.id,email_status});
+  }
+
   // Honeypot: campo hp preenchido = bot. Retorna 200 pra não sinalizar.
   if (body?.hp) {
     return json({ id: '00000000-0000-0000-0000-000000000000' });
   }
+
+  const invalid=validateSchedule(body);
+  if(invalid)return json({error:'validation',field:invalid},400);
 
   // Validate strict shape
   const ensaio_type = body?.ensaio_type;
@@ -174,7 +197,7 @@ serve(async (req) => {
   const preferred_date = typeof body?.preferred_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.preferred_date) ? body.preferred_date : null;
   const date_flexible = body?.date_flexible === true;
   const location = truncate(body?.location, 240);
-  const duration_hours = typeof body?.duration_hours === 'number' && body.duration_hours > 0 && body.duration_hours < 100 ? body.duration_hours : null;
+  const duration_hours = typeof body?.duration_hours === 'number' && body.duration_hours >= 0.5 && body.duration_hours <= 24 ? body.duration_hours : null;
   const styles = Array.isArray(body?.styles) ? body.styles.filter((s: unknown) => typeof s === 'string' && s.length && s.length < 50).slice(0, 20) : [];
   const reference_notes = truncate(body?.reference_notes, 2000);
   const extra_notes = truncate(body?.extra_notes, 2000);
@@ -194,6 +217,7 @@ serve(async (req) => {
   }
 
   const record = {
+    request_id: body.request_id || null,
     ensaio_type,
     contact_name,
     contact_email,
@@ -217,12 +241,16 @@ serve(async (req) => {
     .select('id')
     .single();
   if (error) {
+    if(error.code==='23505' && body.request_id){
+      const {data:existing}=await supabase.from('quote_requests').select('id,email_status').eq('request_id',body.request_id).eq('contact_email',contact_email).maybeSingle();
+      if(existing)return json(existing);
+    }
     console.error('insert quote_requests:', error.message);
     return json({ error: 'server_error' }, 500);
   }
 
-  // Dispara emails em background (não bloqueia resposta)
-  sendEmails(record, data.id).catch((err) => console.error('sendEmails top-level:', (err as Error).message));
-
-  return json({ id: data.id });
+  const email_status = await sendEmails(record, data.id).catch(()=>'failed');
+  const {error:statusError}=await supabase.from('quote_requests').update({email_status,email_sent_at:email_status==='sent'?new Date().toISOString():null,email_error:email_status==='failed'?'Provider request failed; retry from admin.':null}).eq('id',data.id);
+  if(statusError)console.error('email status:',statusError.message);
+  return json({ id: data.id, email_status });
 });

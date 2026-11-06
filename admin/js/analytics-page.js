@@ -1,3 +1,4 @@
+import { readAll } from './read-all.js';
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell } from './admin-shell.js';
 import { escapeHtml } from './shared.js';
@@ -28,9 +29,9 @@ async function load() {
   const since = new Date(Date.now() - currentRange * 86400000).toISOString();
 
   const [pvRes, sessRes, phvRes] = await Promise.all([
-    supabase.from('page_views').select('session_id, path, referrer, duration_ms, created_at').gte('created_at', since),
-    supabase.from('sessions').select('session_id, country, device_type, is_bot, first_seen').gte('first_seen', since),
-    supabase.from('photo_views').select('photo_id, created_at').gte('created_at', since)
+    readAll(() => supabase.from('page_views').select('id, event_id, session_id, path, referrer, duration_ms, created_at').gte('created_at', since).order('id')),
+    readAll(() => supabase.from('sessions').select('session_id, country, device_type, is_bot, first_seen').gte('last_seen', since).order('session_id')),
+    readAll(() => supabase.from('photo_views').select('photo_id, created_at').gte('created_at', since).order('id'))
   ]);
   if (pvRes.error) throw pvRes.error;
   if (sessRes.error) throw sessRes.error;
@@ -41,7 +42,7 @@ async function load() {
   const humanSessions = sessRes.data.filter((s) => !s.is_bot);
 
   // KPIs
-  setText('k-visits', pv.length);
+  setText('k-visits', pv.filter(r=>r.event_id || r.duration_ms==null).length);
   setText('k-sessions', new Set(pv.map((r) => r.session_id)).size);
   const durs = pv.map((r) => r.duration_ms).filter((d) => d != null && d > 0);
   const avgSec = durs.length ? Math.round(durs.reduce((s, d) => s + d, 0) / durs.length / 1000) : 0;
@@ -55,7 +56,7 @@ async function load() {
   for (let d = new Date(oldest); d <= today; d.setDate(d.getDate() + 1)) {
     byDay.set(d.toISOString().slice(0, 10), 0);
   }
-  for (const r of pv) {
+  for (const r of pv.filter(r=>r.event_id || r.duration_ms==null)) {
     const key = r.created_at.slice(0, 10);
     byDay.set(key, (byDay.get(key) || 0) + 1);
   }
@@ -80,12 +81,12 @@ async function load() {
 
   // Top paths
   const paths = new Map();
-  for (const r of pv) paths.set(r.path, (paths.get(r.path) || 0) + 1);
+  for (const r of pv.filter(r=>r.event_id || r.duration_ms==null)) paths.set(r.path, (paths.get(r.path) || 0) + 1);
   renderRanked('top-paths', [...paths.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10));
 
   // Top referrers
   const refs = new Map();
-  for (const r of pv) {
+  for (const r of pv.filter(r=>r.event_id || r.duration_ms==null)) {
     if (!r.referrer) continue;
     let host;
     try { host = new URL(r.referrer).host; } catch { host = r.referrer; }
@@ -100,7 +101,7 @@ function setText(id, v) {
 }
 
 function shortDay(iso) {
-  const d = new Date(iso);
+  const d = new Date(iso + (iso.length===10?'T12:00:00Z':''));
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
@@ -123,7 +124,7 @@ function drawPie(canvasId, entries) {
   if (charts[canvasId]) charts[canvasId].destroy();
   const ctx = document.getElementById(canvasId).getContext('2d');
   if (!entries.length) {
-    ctx.canvas.parentElement.innerHTML = '<p class="placeholder">Sem dados ainda.</p>';
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
     return;
   }
   charts[canvasId] = new Chart(ctx, {

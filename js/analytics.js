@@ -1,117 +1,23 @@
-/*
- * Analytics beacons.
- *
- * Fires pageview at DOMContentLoaded and a duration beacon at pagehide /
- * visibilitychange=hidden. Callers hit trackPhotoView(photoId) via
- * window.LR_ANALYTICS when the lightbox opens a photo (wired from likes.js
- * or the lightbox modules).
- *
- * Wire format is the contract that supabase/functions/ingest/index.ts
- * accepts:
- *   { type, session_id, path?, locale?, referrer?, photo_id?, source?,
- *     duration_ms? }
- *
- * No cookies. Only a sessionStorage-scoped UUID that dies with the tab.
- * Uses navigator.sendBeacon when available so the browser can flush the
- * request during unload; falls back to fetch(keepalive) otherwise.
- */
-(function () {
-  if (window.LR_ANALYTICS) return;
-
-  const INGEST_URL = 'https://junfgutjyicdrvpoyuzz.supabase.co/functions/v1/ingest';
-  const SESSION_KEY = 'lr_session_v1';
-  const NO_TRACK_KEY = 'lr_no_track';
-
-  // Opt-out mechanism. Admin visits set this flag automatically (in
-  // admin/js/admin-shell.js) so Luan's own browsing never inflates the
-  // counters. ?no_track=1 in the URL sets it manually on any browser.
-  try {
-    const q = new URLSearchParams(location.search);
-    if (q.get('no_track') === '1') localStorage.setItem(NO_TRACK_KEY, '1');
-    if (q.get('no_track') === '0') localStorage.removeItem(NO_TRACK_KEY);
-  } catch { /* noop */ }
-  function isOptedOut() {
-    try { return localStorage.getItem(NO_TRACK_KEY) === '1'; } catch { return false; }
-  }
-
-  function getSessionId() {
-    let id = sessionStorage.getItem(SESSION_KEY);
-    if (!id) {
-      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now();
-      sessionStorage.setItem(SESSION_KEY, id);
-    }
-    return id;
-  }
-
-  function inferLocale() {
-    const path = window.location.pathname;
-    if (path.startsWith('/en/')) return 'en';
-    if (path.startsWith('/es/')) return 'es';
-    return 'pt';
-  }
-
-  function send(payload) {
-    if (isOptedOut()) return;
-    // fetch(keepalive) is more reliable than sendBeacon here: sendBeacon
-    // with an application/json Blob triggers CORS quirks in Chromium that
-    // fail the request even when the Edge Function replies to OPTIONS with
-    // Allow-* headers. keepalive lets the browser flush during unload just
-    // like sendBeacon would. Silent-fail — analytics never breaks the page.
-    try {
-      fetch(INGEST_URL, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload),
-        keepalive: true
-      }).catch(() => {});
-    } catch { /* silent */ }
-  }
-
-  function trackPageview() {
-    send({
-      type: 'pageview',
-      session_id: getSessionId(),
-      path: window.location.pathname,
-      locale: inferLocale(),
-      referrer: document.referrer || null
-    });
-  }
-
-  function trackPhotoView(photoId, source) {
-    if (!photoId) return;
-    send({
-      type: 'photo_view',
-      session_id: getSessionId(),
-      photo_id: photoId,
-      source: source || 'lightbox'
-    });
-  }
-
-  const pageStart = Date.now();
-  let durationSent = false;
-  function trackSessionEnd() {
-    if (durationSent) return;
-    durationSent = true;
-    send({
-      type: 'pageview',
-      session_id: getSessionId(),
-      path: window.location.pathname,
-      locale: inferLocale(),
-      duration_ms: Date.now() - pageStart
-    });
-  }
-
-  // Auto-fire pageview on load and a duration-carrying beacon on unload.
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', trackPageview);
-  } else {
-    trackPageview();
-  }
-  window.addEventListener('pagehide', trackSessionEnd);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') trackSessionEnd();
-  });
-
-  window.LR_ANALYTICS = { trackPageview, trackPhotoView, trackSessionEnd };
-  document.dispatchEvent(new CustomEvent('lr:analytics-ready'));
+/* One event ID per document. Duration updates that same visit, never inserts a second visit. */
+(() => {
+ if(window.LR_ANALYTICS)return;
+ const config=window.LR_CONFIG||{url:'https://junfgutjyicdrvpoyuzz.supabase.co'};
+ const params=new URLSearchParams(location.search),key='lr_no_track';
+ try{if(params.get('no_track')==='1')localStorage.setItem(key,'1');if(params.get('no_track')==='0')localStorage.removeItem(key);}catch{}
+ let disabled=false;
+ function optedOut(){try{return disabled||localStorage.getItem(key)==='1'||navigator.doNotTrack==='1';}catch{return disabled;}}
+ const box=document.querySelector('#analytics-opt-out');
+ if(box){box.checked=optedOut();box.addEventListener('change',()=>{disabled=box.checked;try{if(disabled)localStorage.setItem(key,'1');else localStorage.removeItem(key);}catch{};});}
+ let session=crypto.randomUUID();try{session=sessionStorage.getItem('lr_session_v1')||session;sessionStorage.setItem('lr_session_v1',session);}catch{}
+ const event=crypto.randomUUID();let referrer=null;try{referrer=new URL(document.referrer).origin;}catch{}
+ const base={session_id:session,event_id:event,path:location.pathname,locale:document.documentElement.lang.slice(0,2),referrer};
+ for(const k of ['utm_source','utm_medium','utm_campaign'])if(params.has(k))base[k]=params.get(k).slice(0,120);
+ function send(payload){if(optedOut())return;fetch(config.url+'/functions/v1/ingest',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),keepalive:true}).catch(()=>{});}
+ let elapsed=0,started=document.hidden?null:performance.now();
+ function flush(){if(started!=null){elapsed+=performance.now()-started;started=null;}send({...base,type:'page_duration',duration_ms:Math.round(elapsed)});}
+ function photo(id,source='lightbox'){if(!id||!/^[-a-f0-9]{36}$/i.test(id))return;send({type:'photo_view',session_id:session,photo_id:id,source});}
+ let sent=false;function page(){if(sent)return;sent=true;send({...base,type:'pageview'});}
+ page();document.addEventListener('visibilitychange',()=>{if(document.hidden)flush();else started=performance.now();});
+ window.addEventListener('pagehide',flush);window.addEventListener('pageshow',()=>{if(!document.hidden&&started==null)started=performance.now();});
+ window.LR_ANALYTICS={trackPhotoView:photo,trackPageview:page,trackSessionEnd:flush};
 })();

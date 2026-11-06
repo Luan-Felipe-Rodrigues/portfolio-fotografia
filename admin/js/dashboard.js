@@ -1,3 +1,4 @@
+import { readAll } from './read-all.js';
 import { supabase } from './supabase-client.js';
 import { requireAdmin, renderShell, imgUrl } from './admin-shell.js';
 import { escapeHtml } from './shared.js';
@@ -74,9 +75,9 @@ async function loadQuotes() {
 async function loadTraffic() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
   const [pvRes, sessRes, phvRes] = await Promise.all([
-    supabase.from('page_views').select('session_id, path, duration_ms, created_at').gte('created_at', thirtyDaysAgo),
-    supabase.from('sessions').select('session_id, is_bot, first_seen').gte('first_seen', thirtyDaysAgo),
-    supabase.from('photo_views').select('photo_id, created_at, photo:photos(id, storage_path, alt_pt, collection:collections(name_pt))').gte('created_at', thirtyDaysAgo)
+    readAll(() => supabase.from('page_views').select('id, event_id, session_id, path, duration_ms, created_at').gte('created_at', thirtyDaysAgo).order('id')),
+    readAll(() => supabase.from('sessions').select('session_id, is_bot, first_seen').gte('last_seen', thirtyDaysAgo).order('session_id')),
+    readAll(() => supabase.from('photo_views').select('photo_id, created_at, photo:photos(id, storage_path, alt_pt, collection:collections(name_pt))').gte('created_at', thirtyDaysAgo).order('id'))
   ]);
 
   if (pvRes.error) throw pvRes.error;
@@ -86,7 +87,7 @@ async function loadTraffic() {
   const humanSessions = new Set(sessRes.data.filter((s) => !s.is_bot).map((s) => s.session_id));
   const pv = pvRes.data.filter((r) => humanSessions.has(r.session_id));
 
-  setKpi('tr-visits', pv.length);
+  setKpi('tr-visits', pv.filter(r=>r.event_id || r.duration_ms==null).length);
   setKpi('tr-sessions', new Set(pv.map((r) => r.session_id)).size);
   const durations = pv.map((r) => r.duration_ms).filter((d) => d != null && d > 0);
   const avgSec = durations.length ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length / 1000) : 0;
@@ -123,10 +124,10 @@ async function loadTraffic() {
 
 async function load() {
   const [photosRes, colsRes, recentRes, likesRes] = await Promise.all([
-    supabase.from('photos').select('id, collection_id, is_published, is_archived'),
-    supabase.from('collections').select('id, slug, parent_slug, name_pt, display_order').order('parent_slug', { nullsFirst: true, ascending: true }).order('display_order'),
+    readAll(() => supabase.from('photos').select('id, collection_id, is_published, is_archived').order('id')),
+    readAll(() => supabase.from('collections').select('id, slug, parent_slug, name_pt, display_order').order('parent_slug', { nullsFirst: true, ascending: true }).order('display_order').order('id')),
     supabase.from('photos').select('id, storage_path, alt_pt, created_at, is_archived, collection:collections(name_pt)').order('created_at', { ascending: false }).limit(5),
-    supabase.from('photo_likes').select('count')
+    readAll(() => supabase.from('photo_likes').select('count').order('photo_id'))
   ]);
 
   if (photosRes.error) throw photosRes.error;
@@ -232,6 +233,6 @@ function renderRecent(recent) {
 }
 
 function formatDate(iso) {
-  const d = new Date(iso);
+  const d = new Date(iso + (iso.length===10?'T12:00:00Z':''));
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }

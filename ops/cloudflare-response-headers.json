@@ -1,0 +1,16 @@
+{
+  "description": "Photography security headers",
+  "enabled": true,
+  "expression": "(http.host eq \"luanrodrigues.photography\")",
+  "action": "rewrite",
+  "action_parameters": {
+    "headers": {
+      "strict-transport-security": {"operation": "set", "value": "max-age=31536000"},
+      "x-content-type-options": {"operation": "set", "value": "nosniff"},
+      "x-frame-options": {"operation": "set", "value": "DENY"},
+      "referrer-policy": {"operation": "set", "value": "strict-origin-when-cross-origin"},
+      "permissions-policy": {"operation": "set", "value": "camera=(), microphone=(), geolocation=()"},
+      "content-security-policy": {"operation": "set", "value": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'"}
+    }
+  }
+}

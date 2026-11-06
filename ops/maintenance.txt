@@ -1,0 +1,49 @@
+Photography audit repairs — 2026-11-06
+
+Build and verify:
+  node scripts/build-site.mjs
+  node --test tests/*.test.mjs
+The GitHub Pages workflow publishes dist only. Original images, scripts,
+Supabase sources, environment files and Git metadata are excluded.
+
+Refreshing the optimized fallback after catalogue changes:
+  python3 scripts/prepare-photo-assets.py
+  node scripts/build-site.mjs
+New photos also appear through live metadata reconciliation. Locally optimized
+photos remain in use for the existing catalogue. API outages keep the snapshot.
+Descriptions: scripts/photo-descriptions.json (PT/EN/ES).
+Requires Python with Pillow; the build itself needs only Node.
+
+Database:
+  Project junfgutjyicdrvpoyuzz, migration 0012 applied and recorded.
+  Older schemas existed without migration-history entries. Do not run db push
+  on migrations 0001–0011 without first reconciling that legacy history.
+  ingest and submit-quote-request deployed with --no-verify-jwt;
+  mutations are validated in the handlers and database policies.
+  The analytics RPC is service-role only. Admin analytics reads use the allowlist.
+
+Email activation (not configured at audit time):
+  Set RESEND_API_KEY and QUOTE_FROM_ADDRESS using a verified sender/domain.
+  QUOTE_NOTIFY_TO defaults to rodfelluan@gmail.com.
+  Never commit secrets. The form saves a request before attempting notification.
+  Admin > quote detail displays notification state and provides authenticated retry.
+  No real customer email or fabricated live quote was sent during verification.
+
+Cloudflare (rule prepared, not applied: account access unavailable):
+  DNS uses kim.ns.cloudflare.com / jay.ns.cloudflare.com.
+  The current website response is served by GitHub Pages without these headers.
+  Read existing settings/rules first; ensure the hostname is proxied and TLS
+  Full (strict) works with the GitHub Pages certificate before adding a rule.
+  Append cloudflare-response-headers.json to the zone ruleset in phase
+  http_response_headers_transform; do not replace unrelated existing rules.
+  HSTS deliberately excludes includeSubDomains and preload.
+  Portal pages keep their stricter no-referrer HTML meta policy.
+  Public pages already enforce a more complete CSP through HTML meta.
+  Reference: https://developers.cloudflare.com/rules/transform/response-header-modification/create-api/
+  Reference: https://developers.cloudflare.com/rules/transform/response-header-modification/reference/parameters/
+
+Verification scope:
+  Browser tests cover public navigation, galleries, keyboard/focus, quote validation,
+  failure states, 30 localized routes, static/no-JS fallback and mocked submissions.
+  A rollback-only database test checked unique visits and monotonic active duration.
+  Private client deliveries and real email delivery were not exercised.

@@ -65,7 +65,7 @@
       },
       s4: {
         title: 'Deixa eu te retornar',
-        hint: 'Te retorno logo logo.',
+        hint: 'Te retorno em até 48 horas.',
         name: 'Seu nome',
         email: 'E-mail',
         whatsapp: 'WhatsApp',
@@ -141,7 +141,7 @@
       },
       s3: {
         title: '¿Cómo lo imaginas?',
-        hint: 'Marca lo que combina. Los destacados son mi sugerencia para vos.',
+        hint: 'Marca lo que combina. Los destacados son mi sugerencia para ti.',
         stylesLabel: 'Estilos', refs: 'Referencias', refsHint: 'Pega links de Pinterest, Instagram o cuenta qué te inspiró.'
       },
       s4: {
@@ -377,48 +377,54 @@
     consent_given: false
   };
 
-  let state = load() || { ...initialState };
+  let state = load() || { ...initialState, styles: [] };
   let modal = null;
+  let opener = null;
+  let submitting = false;
 
   function load() {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      return { ...initialState, ...parsed };
+      const next = { ...initialState, ...parsed };
+      if (!TYPE_BY_ID.has(next.ensaio_type)) return null;
+      next.step = Number.isInteger(next.step) ? Math.max(1, Math.min(4, next.step)) : 1;
+      next.styles = Array.isArray(next.styles) ? next.styles.filter(s => TYPE_BY_ID.get(next.ensaio_type).allStyles.includes(s)) : [];
+      for (const key of ['preferred_date','location','reference_notes','contact_name','contact_email','contact_whatsapp','extra_notes']) if(typeof next[key] !== 'string') next[key]='';
+      return next;
     } catch { return null; }
   }
   function save() {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* noop */ }
   }
   function reset() {
-    state = { ...initialState };
+    state = { ...initialState, styles: [] };
     try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
   }
 
   // ---- Modal management ------------------------------------------------
   function open() {
     if (modal) return;
+    if (state.step === 5) reset();
+    opener = document.activeElement;
     modal = buildModal();
     document.body.appendChild(modal);
+    modal.showModal();
+    modal.addEventListener('cancel', e => { e.preventDefault(); close(); });
     document.body.style.overflow = 'hidden';
-    requestAnimationFrame(() => {
-      modal.classList.add('open');
-      const firstFocusable = modal.querySelector('.qw-close');
-      firstFocusable?.focus();
-    });
+    modal.classList.add('open');
+    modal.querySelector('.qw-close')?.focus();
     document.addEventListener('keydown', onKey);
   }
 
   function close() {
-    if (!modal) return;
-    modal.classList.remove('open');
+    if (!modal || submitting) return;
     document.removeEventListener('keydown', onKey);
-    setTimeout(() => {
-      if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      modal = null;
-      document.body.style.overflow = '';
-    }, 200);
+    modal.close(); modal.remove(); modal = null;
+    document.body.style.overflow = '';
+    if (state.step === 5) reset();
+    opener?.focus({preventScroll:true});
   }
 
   function onKey(e) {
@@ -443,7 +449,7 @@
 
   // ---- Rendering -------------------------------------------------------
   function buildModal() {
-    const el = document.createElement('div');
+    const el = document.createElement('dialog');
     el.className = 'qw-modal';
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-modal', 'true');
@@ -479,7 +485,7 @@
   }
 
   function renderProgress(el) {
-    el.querySelector('#qw-progress-label').textContent = T.progress(state.step);
+    el.querySelector('#qw-progress-label').textContent = state.step === 5 ? T.s4.finishTitle : T.progress(state.step);
     el.querySelectorAll('.qw-progress-step').forEach((s) => {
       const i = Number(s.dataset.i);
       s.classList.toggle('done', i < state.step);
@@ -501,6 +507,9 @@
     else if (state.step === 4) renderS4(body);
     else if (state.step === 5) renderSuccess(body);
 
+    const heading = body.querySelector('h3');
+    if (heading) { heading.tabIndex = -1; if (el.isConnected) heading.focus(); }
+    body.scrollTop = 0;
     if (state.step === 5) {
       const doneBtn = btn(T.s4.finishClose, close, false, 'ghost');
       right.appendChild(doneBtn);
@@ -553,24 +562,24 @@
     body.innerHTML = `
       <h3>${T.s1.title}</h3>
       <p class="qw-hint">${T.s1.hint}</p>
-      <div class="qw-choices" role="radiogroup" aria-label="${T.s1.title}">
+      <div class="qw-choices" role="group" aria-label="${T.s1.title}">
         ${cards}
       </div>
     `;
     body.querySelectorAll('.qw-choice').forEach((c) => {
       c.addEventListener('click', () => {
-        state.ensaio_type = c.dataset.type;
-        // Recommend styles + duration on first pick (only if user hasn't customized)
-        if (!state.styles.length) {
+        if (state.ensaio_type !== c.dataset.type) {
+          const previous = TYPE_BY_ID.get(state.ensaio_type);
+          state.ensaio_type = c.dataset.type;
           const type = TYPE_BY_ID.get(state.ensaio_type);
-          if (type) state.styles = [...type.styles];
+          state.styles = [...type.styles];
+          if (state.duration_hours == null || state.duration_hours === previous?.duration) state.duration_hours = type.duration ?? null;
         }
-        if (state.duration_hours == null) {
-          const type = TYPE_BY_ID.get(state.ensaio_type);
-          if (type && type.duration != null) state.duration_hours = type.duration;
-        }
-        save();
-        renderStep(modal);
+        body.querySelectorAll('[data-type]').forEach(button => {
+          const selected = button.dataset.type === state.ensaio_type;
+          button.classList.toggle('selected', selected); button.setAttribute('aria-pressed', String(selected));
+        });
+        save(); refreshButtons();
       });
     });
   }
@@ -582,7 +591,7 @@
 
       <div class="qw-field">
         <label class="qw-label" for="qw-date">${T.s2.date} <span class="qw-optional">${T.s2.dateOptional}</span></label>
-        <input class="qw-input" id="qw-date" type="date" value="${state.preferred_date}">
+        <input class="qw-input" id="qw-date" type="date" min="${today()}" value="${escapeAttr(state.preferred_date)}" aria-describedby="qw-date-error">
       </div>
 
       <label class="qw-checkbox">
@@ -597,16 +606,21 @@
 
       <div class="qw-field">
         <label class="qw-label" for="qw-dur">${T.s2.duration}</label>
-        <input class="qw-input" id="qw-dur" type="number" step="0.5" min="0.5" max="24" value="${state.duration_hours || ''}">
+        <input class="qw-input" id="qw-dur" type="number" step="0.5" min="0.5" max="24" value="${state.duration_hours ?? ''}" aria-describedby="qw-dur-error">
       </div>
     `;
-    body.querySelector('#qw-date').addEventListener('input', (e) => { state.preferred_date = e.target.value; save(); refreshButtons(); });
+    for (const id of ['date','dur']) {
+      const error=document.createElement('p');error.id=`qw-${id}-error`;error.className='qw-field-error';error.setAttribute('aria-live','polite');
+      body.querySelector(`#qw-${id}`).after(error);
+    }
+    validateSchedule();
+    body.querySelector('#qw-date').addEventListener('input', (e) => { state.preferred_date = e.target.value; save(); validateSchedule(); refreshButtons(); });
     body.querySelector('#qw-flex').addEventListener('change', (e) => { state.date_flexible = e.target.checked; save(); });
     body.querySelector('#qw-loc').addEventListener('input', (e) => { state.location = e.target.value; save(); });
     body.querySelector('#qw-dur').addEventListener('input', (e) => {
       const v = parseFloat(e.target.value);
-      state.duration_hours = isFinite(v) && v > 0 ? v : null;
-      save();
+      state.duration_hours = e.target.value === '' ? null : v;
+      save(); validateSchedule(); refreshButtons();
     });
   }
 
@@ -647,8 +661,9 @@
         const i = state.styles.indexOf(s);
         if (i >= 0) state.styles.splice(i, 1);
         else state.styles.push(s);
+        b.classList.toggle('selected', state.styles.includes(s));
+        b.setAttribute('aria-pressed', String(state.styles.includes(s)));
         save();
-        renderStep(modal);
       });
     });
     body.querySelector('#qw-refs').addEventListener('input', (e) => { state.reference_notes = e.target.value; save(); });
@@ -671,17 +686,17 @@
 
       <div class="qw-field">
         <label class="qw-label" for="qw-name">${T.s4.name}</label>
-        <input class="qw-input" id="qw-name" type="text" maxlength="120" required value="${escapeAttr(state.contact_name)}">
+        <input class="qw-input" id="qw-name" autocomplete="name" type="text" maxlength="120" required value="${escapeAttr(state.contact_name)}">
       </div>
 
       <div class="qw-field">
         <label class="qw-label" for="qw-email">${T.s4.email}</label>
-        <input class="qw-input" id="qw-email" type="email" maxlength="240" required value="${escapeAttr(state.contact_email)}">
+        <input class="qw-input" id="qw-email" autocomplete="email" type="email" maxlength="240" required value="${escapeAttr(state.contact_email)}">
       </div>
 
       <div class="qw-field">
         <label class="qw-label" for="qw-wa">${T.s4.whatsapp} <span class="qw-optional">${T.s4.whatsappOptional}</span></label>
-        <input class="qw-input" id="qw-wa" type="tel" maxlength="40" value="${escapeAttr(state.contact_whatsapp)}">
+        <input class="qw-input" id="qw-wa" autocomplete="tel" type="tel" maxlength="40" value="${escapeAttr(state.contact_whatsapp)}">
       </div>
 
       <div class="qw-field">
@@ -719,15 +734,26 @@
   }
 
   // ---- Nav actions -----------------------------------------------------
+  function today() {
+    const parts = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+    const part=t=>parts.find(p=>p.type===t).value;return `${part('year')}-${part('month')}-${part('day')}`;
+  }
+  function dateValid(){const d=state.preferred_date;if(!d)return true;const n=new Date(d+'T12:00:00Z');return /^\d{4}-\d{2}-\d{2}$/.test(d)&&!isNaN(n)&&n.toISOString().slice(0,10)===d&&d>=today();}
+  function durationValid(){const d=state.duration_hours;return d==null||(Number.isFinite(d)&&d>=.5&&d<=24&&Number.isInteger(d*2));}
+  function scheduleValid(){return dateValid()&&durationValid();}
+  function validateSchedule(){
+    const errors={pt:['Escolha hoje ou uma data futura.','Use de 0,5 a 24 horas, em intervalos de meia hora.'],en:['Choose today or a future date.','Use 0.5 to 24 hours, in half-hour increments.'],es:['Elige hoy o una fecha futura.','Usa entre 0,5 y 24 horas, en intervalos de media hora.']}[LANG];
+    ['date','dur'].forEach((id,i)=>{const input=modal?.querySelector('#qw-'+id);const error=modal?.querySelector('#qw-'+id+'-error');const valid=i?durationValid():dateValid();if(input)input.setAttribute('aria-invalid',String(!valid));if(error)error.textContent=valid?'':errors[i];});
+  }
   function canProceed() {
     if (state.step === 1) return !!state.ensaio_type;
-    if (state.step === 2) return true; // todos opcionais
+    if (state.step === 2) return scheduleValid();
     if (state.step === 3) return true;
     if (state.step === 4) {
       const name = state.contact_name?.trim();
       const email = state.contact_email?.trim();
       const emailOk = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      return !!name && !!emailOk && state.consent_given;
+      return !!name && !!emailOk && state.consent_given && scheduleValid();
     }
     return false;
   }
@@ -764,13 +790,18 @@
   }
 
   async function onSubmit() {
-    if (!canProceed()) return;
+    if (!canProceed() || submitting) return;
+    submitting = true;
+    modal.setAttribute('aria-busy','true');
+    modal.querySelectorAll('button').forEach(b=>b.disabled=true);
     const btn = modal.querySelector('#qw-footer-right .qw-btn:not(.ghost)');
     if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
     const hp = modal.querySelector('input[name="hp"]')?.value || '';
 
+    state.request_id ||= crypto.randomUUID(); save();
     const payload = {
+      request_id: state.request_id,
       ensaio_type: state.ensaio_type,
       contact_name: state.contact_name.trim(),
       contact_email: state.contact_email.trim(),
@@ -791,7 +822,8 @@
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(20000)
       });
       if (res.status === 429) {
         showFooterError(T.errors.rate);
@@ -803,12 +835,19 @@
         if (btn) { btn.disabled = false; btn.textContent = T.submit; }
         return;
       }
+      const receipt = await res.json();
+      if (!receipt.id) throw new Error('Missing receipt');
       reset();
       state.step = 5;
       renderStep(modal);
     } catch (err) {
       showFooterError(T.errors.network);
       if (btn) { btn.disabled = false; btn.textContent = T.submit; }
+    } finally {
+      submitting = false;
+      modal?.removeAttribute('aria-busy');
+      modal?.querySelectorAll('button').forEach(b=>b.disabled=false);
+      if(state.step!==5)refreshButtons();
     }
   }
 

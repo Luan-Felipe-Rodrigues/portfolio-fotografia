@@ -85,6 +85,11 @@ function render(q, notes) {
       </section>
 
       <section class="quote-block">
+        <h3>Notificações por e-mail</h3>
+        <p id="email-status" role="status">${escapeHtml(({sent:'Enviadas ao cliente e ao fotógrafo.',failed:'O envio falhou. O pedido está salvo.',not_configured:'Provedor de e-mail não configurado. O pedido está salvo.'})[q.email_status] || 'Envio pendente.')}</p>
+        ${q.email_status!=='sent'?'<button class="button" id="retry-email">Tentar enviar notificações</button>':''}
+      </section>
+      <section class="quote-block">
         <h3>Briefing</h3>
         <dl class="quote-dl">
           <dt>Data preferida</dt><dd>${date}${q.date_flexible ? ' (flexível)' : ''}</dd>
@@ -109,6 +114,12 @@ function render(q, notes) {
     </div>
   `;
 
+  document.getElementById('retry-email')?.addEventListener('click',async(e)=>{
+    const button=e.currentTarget;button.disabled=true;
+    const status=document.getElementById('email-status');status.textContent='Enviando…';
+    try{const {data,error}=await supabase.functions.invoke('submit-quote-request',{body:{action:'retry_email',id:q.id}});if(error)throw error;if(data.email_status==='sent'){await load();return;}status.textContent=data.email_status==='not_configured'?'Configure RESEND_API_KEY e QUOTE_FROM_ADDRESS no Supabase para ativar o envio.':'Não foi possível enviar. Tente novamente mais tarde.';}
+    catch{status.textContent='Não foi possível enviar. O pedido continua salvo.';}finally{button.disabled=false;}
+  });
   document.getElementById('quote-status').addEventListener('change', async (e) => {
     const newStatus = e.target.value;
     const { error } = await supabase.from('quote_requests').update({ status: newStatus }).eq('id', q.id);

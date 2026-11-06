@@ -50,19 +50,6 @@ function isRateLimited(key: string): boolean {
   return recent.length > RATE_MAX;
 }
 
-async function geoLookup(ip: string): Promise<string | null> {
-  try {
-    const res = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/country/`, {
-      signal: AbortSignal.timeout(2000)
-    });
-    if (!res.ok) return null;
-    const t = (await res.text()).trim();
-    return /^[A-Z]{2}$/.test(t) ? t : null;
-  } catch {
-    return null;
-  }
-}
-
 function classifyUA(ua: string): { family: string; device: string; isBot: boolean } {
   const isBot = /bot|crawler|spider|scraper|preview|lighthouse|pingdom|uptimerobot/i.test(ua);
   let family = 'Other';
@@ -93,11 +80,11 @@ serve(async (req) => {
     return new Response('bad json', { status: 400, headers: CORS });
   }
 
-  const { type, session_id, path, locale, referrer, photo_id, source, duration_ms } = body;
+  const { type, session_id, path, locale, referrer, photo_id, source, duration_ms, event_id, utm_source, utm_medium, utm_campaign } = body || {};
   if (!session_id || typeof session_id !== 'string' || session_id.length < 8 || session_id.length > 100) {
     return new Response('bad session_id', { status: 400, headers: CORS });
   }
-  if (type !== 'pageview' && type !== 'photo_view') {
+  if (type !== 'pageview' && type !== 'page_duration' && type !== 'photo_view') {
     return new Response('bad type', { status: 400, headers: CORS });
   }
 
@@ -108,7 +95,7 @@ serve(async (req) => {
   const ua = req.headers.get('user-agent') || '';
   const uaInfo = classifyUA(ua);
 
-  const country = ip ? await geoLookup(ip) : null;
+  const country = null;
 
   const { error: sessErr } = await supabase.from('sessions').upsert({
     session_id,
@@ -127,18 +114,18 @@ serve(async (req) => {
   // Bots get a session row but no events (keeps the counts clean).
   if (uaInfo.isBot) return new Response('ok (bot)', { headers: CORS });
 
-  if (type === 'pageview') {
-    const { error } = await supabase.from('page_views').insert({
-      session_id,
-      path: (path || '/').slice(0, 500),
-      locale: locale || null,
-      referrer: referrer ? String(referrer).slice(0, 500) : null,
-      duration_ms: typeof duration_ms === 'number' ? Math.max(0, Math.min(3_600_000, duration_ms)) : null
+  if (type === 'pageview' || type === 'page_duration') {
+    const duration = typeof duration_ms === 'number' && Number.isFinite(duration_ms) ? Math.round(Math.max(0, Math.min(3_600_000, duration_ms))) : null;
+    // Legacy pages send a second pageview with duration: do not inflate totals.
+    if (!event_id && duration !== null) return new Response('ok (legacy duration)', {headers:CORS});
+    if (typeof path !== 'string' || !path.startsWith('/') || !['pt','en','es'].includes(locale)) return new Response('bad page', {status:400,headers:CORS});
+    if (event_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event_id)) return new Response('bad event', {status:400,headers:CORS});
+    let origin = null;try{origin=new URL(referrer).origin;}catch{}
+    const { error } = await supabase.rpc('record_page_view', {
+      p_event_id:event_id || crypto.randomUUID(),p_session_id:session_id,p_path:path,p_locale:locale,p_referrer:origin,p_duration_ms:duration,
+      p_utm_source:typeof utm_source==='string'?utm_source:null,p_utm_medium:typeof utm_medium==='string'?utm_medium:null,p_utm_campaign:typeof utm_campaign==='string'?utm_campaign:null
     });
-    if (error) {
-      console.error('page_views insert:', error.message);
-      return new Response('error', { status: 500, headers: CORS });
-    }
+    if(error){console.error('page view:',error.message);return new Response('error',{status:500,headers:CORS});}
   } else if (type === 'photo_view') {
     if (!photo_id || !/^[0-9a-f-]{36}$/i.test(photo_id)) {
       return new Response('bad photo_id', { status: 400, headers: CORS });
