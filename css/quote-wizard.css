@@ -7,7 +7,7 @@
 :root {
   --qw-bg: var(--bg, #faf9f5);
   --qw-fg: var(--text, #1a1a1a);
-  --qw-muted: #575953;
+  --qw-muted: var(--text-light, #6b6b6b);
   --qw-border: #e0dfd8;
   --qw-accent: #1a1a1a;
   --qw-danger: #b3251c;
@@ -417,17 +417,3 @@
 @media (prefers-reduced-motion: reduce) {
   .qw-modal, .qw-dialog { transition: none; }
 }
-
-/* Native modal keeps the document inert and focus inside the wizard. */
-dialog.qw-modal{margin:0;width:100%;height:100dvh;max-width:none;max-height:none;border:0;color:var(--qw-fg)}
-dialog.qw-modal:not([open]){display:none}
-dialog.qw-modal::backdrop{background:transparent}
-.qw-body h3{text-transform:none;letter-spacing:normal}
-.qw-input,.qw-textarea{font-size:16px}
-.qw-close{min-width:44px;min-height:44px}
-.qw-choice-tag{opacity:1;color:#575953}
-.qw-choice.selected .qw-choice-tag{color:inherit}
-.qw-field-error{font-size:.85rem;color:#9c241d;min-height:1.25em;margin-top:.3rem}
-.qw-input[aria-invalid=true]{border-color:#9c241d}
-.contact-actions .quote-cta-wrap{margin-top:0;padding-top:0;border-top:0}
-@media(max-width:600px){dialog.qw-modal{padding:12px}.qw-dialog{max-height:calc(100dvh - 24px)}}

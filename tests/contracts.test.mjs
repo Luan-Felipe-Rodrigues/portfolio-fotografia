@@ -20,11 +20,17 @@ test('published artifact excludes source, credentials and repository internals',
  const entries=[];function visit(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const file=dir+'/'+e.name;if(e.isDirectory())visit(file);else entries.push(file);}}visit('dist');
  for(const file of entries.filter(f=>f.endsWith('.html'))){const html=fs.readFileSync(file,'utf8');for(const match of html.matchAll(/(?:src|href)="(\/(?!\/)[^"#?]*)(?:[?#][^"]*)?"/g)){const pathname=decodeURIComponent(match[1]);const target='dist'+pathname+(pathname.endsWith('/')?'index.html':'');assert.ok(fs.existsSync(target),`${file}: ${pathname}`);}}
 });
-test('static catalogue contains every photograph once and meaningful descriptions',()=>{
- const catalog=JSON.parse(fs.readFileSync('data/catalog.json','utf8'));
- for(const [lang,route] of [['pt','trabalho.html'],['en','en/trabalho.html'],['es','es/trabajo.html']]){
-  const html=fs.readFileSync('dist/'+route,'utf8');const ids=[...html.matchAll(/class="photo-link gallery-item"[^>]*data-id="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.length,catalog.photos.length);assert.equal(new Set(ids).size,ids.length);
-  for(const p of catalog.photos){assert.ok(p['alt_'+lang].length>12);for(const source of p.sources)assert.ok(fs.existsSync('dist'+source.src));}
-  assert.equal((html.match(/id="main-content"/g)||[]).length,1);assert.ok(html.includes('property="og:image"'));
+test('public galleries keep the authored selection mechanism',()=>{
+ const html=fs.readFileSync('dist/trabalho.html','utf8');
+ assert.ok(html.includes('id="all-work-container"'));
+ assert.ok(html.includes('js/allwork.js'));
+ assert.ok(!html.includes('portfolio-filter'));
+ for(const file of ['index.html','trabalho.html','series-lugares.html','series-autoral.html']){
+  const page=fs.readFileSync('dist/'+file,'utf8');
+  assert.ok(!page.includes('page-catalog'));
+  assert.ok(!page.includes('catalog-live.js'));
  }
+ const source=fs.readFileSync('dist/js/dynamic-render.js','utf8');
+ assert.ok(source.includes(".eq('is_published', true)"));
+ assert.ok(source.includes(".eq('is_archived', false)"));
 });

@@ -1,49 +1,35 @@
-Photography audit repairs — 2026-11-06
+Photography site — restoration after scope correction, 2026-11-06
 
-Build and verify:
+The authored interface is restored from e9b113f. HTML, CSS and visual scripts
+match that version exactly. The unrequested generated layouts, static catalogue,
+extra photo selection and optimized copies from edcfdd5 were removed.
+The public galleries again use their original Supabase queries and selection logic.
+No photo records or publication/archive flags were changed in the database.
+
+Build:
   node scripts/build-site.mjs
   node --test tests/*.test.mjs
-The GitHub Pages workflow publishes dist only. Original images, scripts,
-Supabase sources, environment files and Git metadata are excluded.
+The build only packages the explicitly listed files in scripts/public-files.json.
+It does not generate pages, select photographs or alter layouts.
+GitHub Pages continues to publish dist only, excluding server code and secrets.
 
-Refreshing the optimized fallback after catalogue changes:
-  python3 scripts/prepare-photo-assets.py
-  node scripts/build-site.mjs
-New photos also appear through live metadata reconciliation. Locally optimized
-photos remain in use for the existing catalogue. API outages keep the snapshot.
-Descriptions: scripts/photo-descriptions.json (PT/EN/ES).
-Requires Python with Pillow; the build itself needs only Node.
+Retained nonvisual technical changes:
+  Unique analytics event IDs and active duration updates; paginated admin reads.
+  Database analytics access restricted to the admin allowlist.
+  Server-side quote validation, idempotency and recorded email status/retry.
+  Public sitemap and icons.
 
-Database:
-  Project junfgutjyicdrvpoyuzz, migration 0012 applied and recorded.
-  Older schemas existed without migration-history entries. Do not run db push
-  on migrations 0001–0011 without first reconciling that legacy history.
-  ingest and submit-quote-request deployed with --no-verify-jwt;
-  mutations are validated in the handlers and database policies.
-  The analytics RPC is service-role only. Admin analytics reads use the allowlist.
+External work interrupted at the user's request:
+  Cloudflare TLS changed to Full (strict).
+  One existing apex A record (185.199.111.153) has proxy enabled.
+  Resend domain registered; public DKIM TXT added at resend._domainkey.
+  Header/redirect rules were not applied. Resend credentials were not configured.
+  No customer notification or test email was sent.
+  Check live DNS before continuing; do not infer completion from prepared files.
 
-Email activation (not configured at audit time):
-  Set RESEND_API_KEY and QUOTE_FROM_ADDRESS using a verified sender/domain.
-  QUOTE_NOTIFY_TO defaults to rodfelluan@gmail.com.
-  Never commit secrets. The form saves a request before attempting notification.
-  Admin > quote detail displays notification state and provides authenticated retry.
-  No real customer email or fabricated live quote was sent during verification.
+Database migration 0012 is applied and recorded on junfgutjyicdrvpoyuzz.
+Older schemas existed without migration-history entries: do not blindly run db push
+for 0001–0011. Both edge functions were deployed before interface restoration.
 
-Cloudflare (rule prepared, not applied: account access unavailable):
-  DNS uses kim.ns.cloudflare.com / jay.ns.cloudflare.com.
-  The current website response is served by GitHub Pages without these headers.
-  Read existing settings/rules first; ensure the hostname is proxied and TLS
-  Full (strict) works with the GitHub Pages certificate before adding a rule.
-  Append cloudflare-response-headers.json to the zone ruleset in phase
-  http_response_headers_transform; do not replace unrelated existing rules.
-  HSTS deliberately excludes includeSubDomains and preload.
-  Portal pages keep their stricter no-referrer HTML meta policy.
-  Public pages already enforce a more complete CSP through HTML meta.
-  Reference: https://developers.cloudflare.com/rules/transform/response-header-modification/create-api/
-  Reference: https://developers.cloudflare.com/rules/transform/response-header-modification/reference/parameters/
-
-Verification scope:
-  Browser tests cover public navigation, galleries, keyboard/focus, quote validation,
-  failure states, 30 localized routes, static/no-JS fallback and mocked submissions.
-  A rollback-only database test checked unique visits and monotonic active duration.
-  Private client deliveries and real email delivery were not exercised.
+Scope: future fixes must preserve composition, animation, navigation, filters and
+editorial photo selection. Do not substitute an alternate interface or catalogue.
